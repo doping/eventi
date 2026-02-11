@@ -144,3 +144,11 @@
 ## Testing e Dati di Esempio
 - [x] Script seed per popolare database con eventi finti
 - [x] Verifica visualizzazione eventi nel catalogo
+
+
+## Pagine Frontend Mancanti
+- [x] Pagina dettaglio evento con selezione biglietti
+- [x] Carrello e checkout con Stripe
+- [x] Pagina conferma ordine e generazione biglietti
+- [x] Pagina "I Miei Biglietti" con storico ordini
+- [x] Registrazione route in App.tsx
