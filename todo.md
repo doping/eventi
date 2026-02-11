@@ -1,0 +1,141 @@
+# EventiPro - TODO List
+
+## Database & Schema
+- [ ] Tabella eventi con campi completi (titolo, descrizione, data, luogo, coordinate, categoria, immagine, stato approvazione)
+- [ ] Tabella categorie biglietti con prezzi e disponibilità per evento
+- [ ] Tabella ordini con relazione utente e stato pagamento
+- [ ] Tabella biglietti con QR code univoco e stato validazione
+- [ ] Tabella commissioni configurabili per partner
+- [ ] Tabella transazioni per tracking pagamenti Stripe
+- [ ] Estensione tabella users con ruoli (admin, partner, user)
+
+## Integrazione Stripe
+- [x] Configurazione Stripe con webdev_add_feature
+- [x] Setup chiavi API Stripe (test e production)
+- [x] Implementazione checkout session per pagamenti
+- [x] Gestione webhook Stripe per conferma pagamenti
+- [x] Sistema di refund per cancellazioni
+
+## Backend API - Eventi
+- [x] API creazione evento (admin e partner)
+- [x] API modifica evento con controllo permessi
+- [x] API eliminazione evento
+- [x] API lista eventi pubblici con filtri (categoria, data, luogo, ricerca)
+- [x] API dettaglio evento singolo
+- [x] API approvazione eventi partner (solo admin)
+- [x] API statistiche vendite per evento
+
+## Backend API - Ordini e Biglietti
+- [x] API creazione ordine con carrello
+- [x] API checkout e creazione sessione Stripe
+- [x] API conferma ordine post-pagamento
+- [x] API generazione biglietti PDF con QR code
+- [x] API lista ordini utente
+- [x] API dettaglio ordine con biglietti
+- [x] API validazione biglietto tramite QR code
+- [x] API prevenzione duplicati validazione
+
+## Backend API - Sistema Commissioni
+- [x] API configurazione commissioni globali (admin)
+- [x] API calcolo commissioni per evento partner
+- [x] API report guadagni partner
+- [x] API report commissioni admin
+
+## Frontend - Interfaccia Pubblica
+- [ ] Homepage elegante con eventi in evidenza
+- [ ] Catalogo eventi con card design raffinato
+- [ ] Filtri avanzati (categoria, data, luogo, prezzo)
+- [ ] Barra ricerca testuale eventi
+- [ ] Pagina dettaglio evento con tutte le informazioni
+- [ ] Selezione categoria biglietto e quantità
+- [ ] Visualizzazione mappa location evento
+
+## Frontend - Carrello e Checkout
+- [ ] Carrello con riepilogo biglietti selezionati
+- [ ] Modifica quantità e rimozione dal carrello
+- [ ] Pagina checkout con form dati utente
+- [ ] Integrazione Stripe Elements per pagamento
+- [ ] Pagina conferma ordine con riepilogo
+- [ ] Download immediato biglietti PDF
+
+## Frontend - Dashboard Amministratore
+- [ ] Layout dashboard admin con sidebar
+- [ ] Panoramica vendite globali con grafici
+- [ ] Lista tutti gli eventi con filtri
+- [ ] Gestione approvazione eventi partner
+- [ ] Configurazione commissioni sistema
+- [ ] Scanner QR code per validazione biglietti
+- [ ] Report vendite e analytics
+- [ ] Gestione utenti e ruoli
+
+## Frontend - Dashboard Partner
+- [ ] Layout dashboard partner con sidebar
+- [ ] Form creazione nuovo evento
+- [ ] Lista eventi propri con stato approvazione
+- [ ] Modifica eventi esistenti
+- [ ] Statistiche vendite per evento
+- [ ] Report guadagni con dettaglio commissioni
+- [ ] Calendario eventi pubblicati
+
+## Frontend - Area Utente
+- [ ] Pagina profilo con dati personali
+- [ ] Storico ordini completo
+- [ ] Dettaglio ordine con lista biglietti
+- [ ] Download/ristampa biglietti PDF
+- [ ] Gestione preferenze notifiche
+
+## Sistema Email Automatiche
+- [ ] Template email conferma ordine
+- [ ] Email con allegato biglietti PDF
+- [ ] Email promemoria evento 24h prima
+- [ ] Notifica admin per nuovo evento partner
+- [ ] Alert admin per milestone vendite
+- [ ] Sistema scheduling email promemoria
+
+## Mappe Interattive
+- [ ] Integrazione Google Maps per location eventi
+- [ ] Visualizzazione marker evento su mappa
+- [ ] Indicazioni stradali verso venue
+- [ ] Ricerca venue nelle vicinanze
+- [ ] Preview satellite del luogo
+
+## Analisi Predittiva LLM
+- [ ] Integrazione LLM per analisi vendite
+- [ ] Suggerimenti pricing ottimale per eventi
+- [ ] Identificazione trend eventi popolari
+- [ ] Report insights automatici
+- [ ] Dashboard analytics con AI insights
+
+## Design e UX
+- [ ] Palette colori elegante per contesto culturale
+- [ ] Typography raffinata (font serif per titoli)
+- [ ] Componenti UI personalizzati
+- [ ] Animazioni fluide e transizioni
+- [ ] Responsive design completo
+- [ ] Dark mode opzionale
+
+## Testing e Ottimizzazioni
+- [ ] Test unitari backend API
+- [ ] Test integrazione Stripe
+- [ ] Test generazione PDF e QR code
+- [ ] Test validazione biglietti
+- [ ] Test email automatiche
+- [ ] Ottimizzazione performance query database
+- [ ] Ottimizzazione caricamento immagini eventi
+
+## Documentazione
+- [ ] README con istruzioni setup
+- [ ] Documentazione API
+- [ ] Guida utente per admin
+- [ ] Guida utente per partner
+- [ ] Istruzioni deployment e configurazione
+
+
+## Completati
+- [x] Tabella eventi con campi completi (titolo, descrizione, data, luogo, coordinate, categoria, immagine, stato approvazione)
+- [x] Tabella categorie biglietti con prezzi e disponibilità per evento
+- [x] Tabella ordini con relazione utente e stato pagamento
+- [x] Tabella biglietti con QR code univoco e stato validazione
+- [x] Tabella commissioni configurabili per partner
+- [x] Tabella transazioni per tracking pagamenti Stripe
+- [x] Estensione tabella users con ruoli (admin, partner, user)
