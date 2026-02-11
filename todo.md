@@ -139,3 +139,8 @@
 - [x] Tabella commissioni configurabili per partner
 - [x] Tabella transazioni per tracking pagamenti Stripe
 - [x] Estensione tabella users con ruoli (admin, partner, user)
+
+
+## Testing e Dati di Esempio
+- [x] Script seed per popolare database con eventi finti
+- [x] Verifica visualizzazione eventi nel catalogo
