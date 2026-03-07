@@ -554,3 +554,93 @@ export async function getPartnerEarnings(partnerId: number) {
     .where(and(eq(events.organizerId, partnerId), eq(orders.status, 'completed')))
     .groupBy(events.id);
 }
+
+export async function getAdminDashboardStats() {
+  const db = await getDb();
+  if (!db) return null;
+
+  const [totalEventsResult] = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(events);
+
+  const [totalOrdersResult] = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(orders)
+    .where(eq(orders.status, 'completed'));
+
+  const [totalRevenueResult] = await db
+    .select({ total: sql<string>`COALESCE(SUM(${orders.totalAmount}), 0)` })
+    .from(orders)
+    .where(eq(orders.status, 'completed'));
+
+  const [totalTicketsResult] = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(tickets);
+
+  const [pendingEventsResult] = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(events)
+    .where(eq(events.status, 'pending'));
+
+  const [totalUsersResult] = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(users);
+
+  return {
+    totalEvents: Number(totalEventsResult?.count ?? 0),
+    totalOrders: Number(totalOrdersResult?.count ?? 0),
+    totalRevenue: parseFloat(totalRevenueResult?.total ?? '0'),
+    totalTickets: Number(totalTicketsResult?.count ?? 0),
+    pendingEvents: Number(pendingEventsResult?.count ?? 0),
+    totalUsers: Number(totalUsersResult?.count ?? 0),
+  };
+}
+
+export async function getAllEvents() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db
+    .select()
+    .from(events)
+    .orderBy(desc(events.createdAt));
+}
+
+export async function getAllOrders() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db
+    .select({
+      id: orders.id,
+      orderNumber: orders.orderNumber,
+      status: orders.status,
+      totalAmount: orders.totalAmount,
+      commissionAmount: orders.commissionAmount,
+      createdAt: orders.createdAt,
+      userId: orders.userId,
+      userName: users.name,
+      userEmail: users.email,
+    })
+    .from(orders)
+    .leftJoin(users, eq(users.id, orders.userId))
+    .orderBy(desc(orders.createdAt))
+    .limit(100);
+}
+
+export async function getAllUsers() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db
+    .select()
+    .from(users)
+    .orderBy(desc(users.createdAt));
+}
+
+export async function updateUserRole(userId: number, role: 'user' | 'admin' | 'partner') {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users).set({ role }).where(eq(users.id, userId));
+}

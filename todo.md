@@ -152,3 +152,11 @@
 - [x] Pagina conferma ordine e generazione biglietti
 - [x] Pagina "I Miei Biglietti" con storico ordini
 - [x] Registrazione route in App.tsx
+
+## Dashboard Admin
+- [x] Pagina dashboard admin con statistiche vendite globali
+- [x] Gestione eventi (lista, approvazione partner, modifica, eliminazione)
+- [x] Gestione ordini e biglietti
+- [x] Validazione biglietti tramite QR code
+- [x] Gestione utenti e ruoli
+- [x] Route /admin registrata in App.tsx

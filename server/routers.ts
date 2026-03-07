@@ -512,6 +512,40 @@ export const appRouter = router({
       }),
   }),
 
+  // ============ ADMIN ============
+  admin: router({
+    // Global dashboard statistics
+    stats: adminProcedure.query(async () => {
+      return await db.getAdminDashboardStats();
+    }),
+
+    // All events list
+    allEvents: adminProcedure.query(async () => {
+      return await db.getAllEvents();
+    }),
+
+    // All orders list
+    allOrders: adminProcedure.query(async () => {
+      return await db.getAllOrders();
+    }),
+
+    // All users list
+    allUsers: adminProcedure.query(async () => {
+      return await db.getAllUsers();
+    }),
+
+    // Update user role
+    updateUserRole: adminProcedure
+      .input(z.object({
+        userId: z.number(),
+        role: z.enum(['user', 'admin', 'partner']),
+      }))
+      .mutation(async ({ input }) => {
+        await db.updateUserRole(input.userId, input.role);
+        return { success: true };
+      }),
+  }),
+
   // ============ COMMISSIONS ============
   commissions: router({
     // Get commission for partner
