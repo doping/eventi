@@ -44,7 +44,7 @@ export async function createCheckoutSession(params: {
     payment_method_types: ['card'],
     line_items: lineItems,
     mode: 'payment',
-    success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+    success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}&order_number=${encodeURIComponent(orderNumber)}`,
     cancel_url: `${origin}/checkout/cancel`,
     customer_email: userEmail,
     client_reference_id: userId.toString(),

@@ -169,3 +169,10 @@
 - [x] Pulsante "Modifica" nella dashboard admin tabella eventi
 - [x] Dashboard partner /partner con lista eventi propri e form creazione
 - [x] Route /partner e /events/:id/edit in App.tsx
+
+## Bug Fix - Pagina Conferma Ordine
+- [x] Creazione pagina /checkout/success con dettagli ordine e biglietti
+- [x] Visualizzazione QR code per ogni biglietto acquistato
+- [x] Pulsante download PDF biglietto
+- [x] Correzione URL success Stripe che punta a /checkout/success
+- [x] Route /checkout/success e /checkout/cancel in App.tsx
