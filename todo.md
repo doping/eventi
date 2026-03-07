@@ -181,3 +181,8 @@
 - [x] Fix errore download PDF (generazione lato browser con jsPDF)
 - [x] PDF elegante con QR code, dettagli evento e dati biglietto
 - [x] Fix Link annidati in tutte le pagine (Home, MyTickets, AdminDashboard, EventEdit, PartnerDashboard, CheckoutSuccess)
+
+## Fix UI - Navbar Responsive
+- [x] Menu hamburger a comparsa su mobile
+- [x] Navbar non sfonda su schermi piccoli
+- [x] Componente Navbar riutilizzabile creato

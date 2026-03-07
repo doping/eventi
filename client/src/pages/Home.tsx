@@ -1,9 +1,9 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import Navbar from "@/components/Navbar";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { Calendar, MapPin, Music, Search, Ticket } from "lucide-react";
 import { useState } from "react";
@@ -27,42 +27,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      {/* Navigation */}
-      <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
-              <Music className="h-7 w-7" />
-              <span>EventiPro</span>
-            </Link>
-            
-            <div className="flex items-center gap-4">
-              {isAuthenticated ? (
-                <>
-                  {user?.role === 'admin' && (
-                    <Link href="/admin">
-                      <Button variant="ghost">Dashboard Admin</Button>
-                    </Link>
-                  )}
-                  {(user?.role === 'partner' || user?.role === 'admin') && (
-                    <Link href="/partner">
-                      <Button variant="ghost">I Miei Eventi</Button>
-                    </Link>
-                  )}
-                  <Link href="/my-tickets">
-                    <Button variant="ghost">I Miei Biglietti</Button>
-                  </Link>
-                  <span className="text-sm text-muted-foreground">{user?.name}</span>
-                </>
-              ) : (
-                <a href={getLoginUrl()}>
-                  <Button>Accedi</Button>
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary/10 via-accent/5 to-background py-20">
@@ -157,9 +122,8 @@ export default function Home() {
           ) : events && events.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {events.map((event) => (
-                <Link key={event.id} href={`/events/${event.id}`}>
-                  <a>
-                    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 h-full group">
+                <Link key={event.id} href={`/events/${event.id}`} className="block h-full">
+                    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 h-full group cursor-pointer">
                       {event.imageUrl ? (
                         <div className="h-48 overflow-hidden">
                           <img
@@ -209,7 +173,6 @@ export default function Home() {
                         </Button>
                       </CardFooter>
                     </Card>
-                  </a>
                 </Link>
               ))}
             </div>
