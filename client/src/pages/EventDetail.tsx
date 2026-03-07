@@ -104,11 +104,9 @@ export default function EventDetail() {
       <div className="min-h-screen">
         <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4">
-            <Link href="/">
-              <a className="flex items-center gap-2 text-2xl font-bold text-primary">
-                <Music className="h-7 w-7" />
-                <span>EventiPro</span>
-              </a>
+            <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
+              <Music className="h-7 w-7" />
+              <span>EventiPro</span>
             </Link>
           </div>
         </nav>
@@ -128,20 +126,16 @@ export default function EventDetail() {
       <div className="min-h-screen">
         <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4">
-            <Link href="/">
-              <a className="flex items-center gap-2 text-2xl font-bold text-primary">
-                <Music className="h-7 w-7" />
-                <span>EventiPro</span>
-              </a>
+            <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
+              <Music className="h-7 w-7" />
+              <span>EventiPro</span>
             </Link>
           </div>
         </nav>
         <div className="container mx-auto px-4 py-12 text-center">
           <h1 className="text-3xl font-bold mb-4">Evento non trovato</h1>
           <Link href="/">
-            <a>
-              <Button>Torna alla Home</Button>
-            </a>
+            <Button>Torna alla Home</Button>
           </Link>
         </div>
       </div>
@@ -159,16 +153,12 @@ export default function EventDetail() {
       <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/">
-              <a className="flex items-center gap-2 text-2xl font-bold text-primary">
-                <Music className="h-7 w-7" />
-                <span>EventiPro</span>
-              </a>
+            <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
+              <Music className="h-7 w-7" />
+              <span>EventiPro</span>
             </Link>
             <Link href="/">
-              <a>
-                <Button variant="ghost">← Torna al Catalogo</Button>
-              </a>
+              <Button variant="ghost">← Torna al Catalogo</Button>
             </Link>
           </div>
         </div>

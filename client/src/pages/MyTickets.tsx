@@ -2,8 +2,10 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getLoginUrl } from "@/const";
+import { generateTicketPDF } from "@/lib/ticketPDF";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Download, MapPin, Music, Ticket } from "lucide-react";
+import { Calendar, Download, Loader2, MapPin, Music, Ticket } from "lucide-react";
+import { useState } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 
@@ -12,24 +14,82 @@ export default function MyTickets() {
   const { data: orders, isLoading } = trpc.orders.myOrders.useQuery(undefined, {
     enabled: isAuthenticated,
   });
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
-  const downloadPDF = trpc.tickets.downloadPDF.useQuery;
-
-  const handleDownloadPDF = async (orderId: number) => {
+  const handleDownloadPDF = async (orderId: number, orderNumber: string) => {
+    setDownloadingId(orderId);
     try {
       toast.info("Generazione PDF in corso...");
-      const result = await downloadPDF({ orderId });
-      
-      if (result.data?.pdf) {
-        // Convert base64 to blob and download
-        const link = document.createElement("a");
-        link.href = result.data.pdf;
-        link.download = `biglietti-ordine-${orderId}.pdf`;
-        link.click();
-        toast.success("PDF scaricato con successo!");
+
+      // Fetch full order details
+      const res = await fetch(
+        `/api/trpc/orders.getById?input=${encodeURIComponent(
+          JSON.stringify({ json: { id: orderId } })
+        )}`
+      );
+      const json = await res.json();
+      const orderData = json?.result?.data?.json;
+
+      if (!orderData?.tickets?.length) {
+        toast.error("Nessun biglietto trovato per questo ordine.");
+        return;
       }
+
+      // Fetch event/category details for each ticket
+      const enriched = await Promise.all(
+        orderData.tickets.map(async (ticket: any, idx: number) => {
+          try {
+            const tRes = await fetch(
+              `/api/trpc/tickets.checkStatus?input=${encodeURIComponent(
+                JSON.stringify({ json: { qrCode: ticket.qrCode } })
+              )}`
+            );
+            const tJson = await tRes.json();
+            const tData = tJson?.result?.data?.json;
+            const event = tData?.event;
+            const category = tData?.category;
+            return {
+              qrCode: ticket.qrCode,
+              holderName: ticket.holderName,
+              holderEmail: ticket.holderEmail,
+              eventTitle: event?.title ?? "Evento",
+              eventDate: event?.eventDate ? new Date(event.eventDate) : new Date(),
+              venueName: event?.venueName ?? "",
+              venueCity: event?.venueCity ?? "",
+              venueAddress: event?.venueAddress ?? null,
+              categoryName: category?.name ?? "Biglietto",
+              categoryPrice: category?.price ?? "0",
+              orderNumber,
+              ticketIndex: idx + 1,
+              totalTickets: orderData.tickets.length,
+            };
+          } catch {
+            return {
+              qrCode: ticket.qrCode,
+              holderName: ticket.holderName,
+              holderEmail: ticket.holderEmail,
+              eventTitle: "Evento",
+              eventDate: new Date(),
+              venueName: "",
+              venueCity: "",
+              venueAddress: null,
+              categoryName: "Biglietto",
+              categoryPrice: "0",
+              orderNumber,
+              ticketIndex: idx + 1,
+              totalTickets: orderData.tickets.length,
+            };
+          }
+        })
+      );
+
+      await generateTicketPDF(enriched);
+      toast.success("PDF scaricato con successo!");
     } catch (error: any) {
-      toast.error(error.message || "Errore durante il download del PDF");
+      console.error(error);
+      toast.error("Errore durante la generazione del PDF. Riprova.");
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -46,11 +106,9 @@ export default function MyTickets() {
       <div className="min-h-screen">
         <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4">
-            <Link href="/">
-              <a className="flex items-center gap-2 text-2xl font-bold text-primary">
-                <Music className="h-7 w-7" />
-                <span>EventiPro</span>
-              </a>
+            <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
+              <Music className="h-7 w-7" />
+              <span>EventiPro</span>
             </Link>
           </div>
         </nav>
@@ -74,18 +132,14 @@ export default function MyTickets() {
       <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/">
-              <a className="flex items-center gap-2 text-2xl font-bold text-primary">
-                <Music className="h-7 w-7" />
-                <span>EventiPro</span>
-              </a>
+            <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
+              <Music className="h-7 w-7" />
+              <span>EventiPro</span>
             </Link>
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground">{user?.name}</span>
               <Link href="/">
-                <a>
-                  <Button variant="ghost">Catalogo Eventi</Button>
-                </a>
+                <Button variant="ghost">Catalogo Eventi</Button>
               </Link>
             </div>
           </div>
@@ -176,11 +230,16 @@ export default function MyTickets() {
                         </div>
                       </div>
                       <Button
-                        onClick={() => handleDownloadPDF(order.id)}
+                        onClick={() => handleDownloadPDF(order.id, order.orderNumber)}
                         variant="outline"
+                        disabled={downloadingId === order.id}
                       >
-                        <Download className="h-4 w-4 mr-2" />
-                        Scarica PDF
+                        {downloadingId === order.id ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Download className="h-4 w-4 mr-2" />
+                        )}
+                        {downloadingId === order.id ? "Generazione..." : "Scarica PDF"}
                       </Button>
                     </div>
                   </CardContent>
@@ -197,9 +256,7 @@ export default function MyTickets() {
                 Non hai ancora acquistato biglietti per eventi
               </p>
               <Link href="/">
-                <a>
-                  <Button>Esplora Eventi</Button>
-                </a>
+                <Button>Esplora Eventi</Button>
               </Link>
             </CardContent>
           </Card>

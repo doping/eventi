@@ -218,7 +218,7 @@ export default function EventEdit() {
           </CardHeader>
           <CardContent className="text-center">
             <Link href="/">
-              <a><Button>Torna alla Home</Button></a>
+              <Button>Torna alla Home</Button>
             </Link>
           </CardContent>
         </Card>
@@ -235,7 +235,7 @@ export default function EventEdit() {
           </CardHeader>
           <CardContent className="text-center">
             <Link href="/admin">
-              <a><Button>Torna alla Dashboard</Button></a>
+              <Button>Torna alla Dashboard</Button>
             </Link>
           </CardContent>
         </Card>
@@ -250,12 +250,10 @@ export default function EventEdit() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href={user?.role === "admin" ? "/admin" : "/partner"}>
-                <a className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
-                  <ArrowLeft className="h-5 w-5" />
-                  <Music className="h-6 w-6" />
-                  <span className="font-bold">EventiPro</span>
-                </a>
+              <Link href={user?.role === "admin" ? "/admin" : "/partner"} className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
+                <ArrowLeft className="h-5 w-5" />
+                <Music className="h-6 w-6" />
+                <span className="font-bold">EventiPro</span>
               </Link>
               <div className="h-6 w-px bg-border" />
               <span className="font-semibold text-muted-foreground">
@@ -577,9 +575,7 @@ export default function EventEdit() {
           {/* Save Button Bottom */}
           <div className="flex justify-end gap-3">
             <Link href={user?.role === "admin" ? "/admin" : "/partner"}>
-              <a>
-                <Button variant="outline">Annulla</Button>
-              </a>
+              <Button variant="outline">Annulla</Button>
             </Link>
             <Button onClick={handleSave} disabled={isSaving} className="gap-2 px-8">
               <Save className="h-4 w-4" />

@@ -31,11 +31,9 @@ export default function Home() {
       <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/">
-              <a className="flex items-center gap-2 text-2xl font-bold text-primary">
-                <Music className="h-7 w-7" />
-                <span>EventiPro</span>
-              </a>
+            <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
+              <Music className="h-7 w-7" />
+              <span>EventiPro</span>
             </Link>
             
             <div className="flex items-center gap-4">
@@ -43,22 +41,16 @@ export default function Home() {
                 <>
                   {user?.role === 'admin' && (
                     <Link href="/admin">
-                      <a>
-                        <Button variant="ghost">Dashboard Admin</Button>
-                      </a>
+                      <Button variant="ghost">Dashboard Admin</Button>
                     </Link>
                   )}
                   {(user?.role === 'partner' || user?.role === 'admin') && (
                     <Link href="/partner">
-                      <a>
-                        <Button variant="ghost">I Miei Eventi</Button>
-                      </a>
+                      <Button variant="ghost">I Miei Eventi</Button>
                     </Link>
                   )}
                   <Link href="/my-tickets">
-                    <a>
-                      <Button variant="ghost">I Miei Biglietti</Button>
-                    </a>
+                    <Button variant="ghost">I Miei Biglietti</Button>
                   </Link>
                   <span className="text-sm text-muted-foreground">{user?.name}</span>
                 </>

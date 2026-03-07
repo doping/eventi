@@ -176,3 +176,8 @@
 - [x] Pulsante download PDF biglietto
 - [x] Correzione URL success Stripe che punta a /checkout/success
 - [x] Route /checkout/success e /checkout/cancel in App.tsx
+
+## Bug Fix - Download PDF Biglietti
+- [x] Fix errore download PDF (generazione lato browser con jsPDF)
+- [x] PDF elegante con QR code, dettagli evento e dati biglietto
+- [x] Fix Link annidati in tutte le pagine (Home, MyTickets, AdminDashboard, EventEdit, PartnerDashboard, CheckoutSuccess)

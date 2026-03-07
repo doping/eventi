@@ -122,9 +122,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent className="text-center">
             <Link href="/">
-              <a>
-                <Button>Torna alla Home</Button>
-              </a>
+              <Button>Torna alla Home</Button>
             </Link>
           </CardContent>
         </Card>
@@ -139,12 +137,10 @@ export default function AdminDashboard() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/">
-                <a className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
-                  <ArrowLeft className="h-5 w-5" />
-                  <Music className="h-7 w-7" />
-                  <span className="text-xl font-bold">EventiPro</span>
-                </a>
+              <Link href="/" className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
+                <ArrowLeft className="h-5 w-5" />
+                <Music className="h-7 w-7" />
+                <span className="text-xl font-bold">EventiPro</span>
               </Link>
               <div className="h-6 w-px bg-border" />
               <div className="flex items-center gap-2">
@@ -437,18 +433,14 @@ export default function AdminDashboard() {
                                   </>
                                 )}
                                 <Link href={`/events/${event.id}/edit`}>
-                                  <a>
-                                    <Button size="sm" variant="outline" className="h-7 text-xs">
-                                      Modifica
-                                    </Button>
-                                  </a>
+                                  <Button size="sm" variant="outline" className="h-7 text-xs">
+                                    Modifica
+                                  </Button>
                                 </Link>
                                 <Link href={`/events/${event.id}`}>
-                                  <a>
-                                    <Button size="sm" variant="ghost" className="h-7 text-xs">
-                                      Vedi
-                                    </Button>
-                                  </a>
+                                  <Button size="sm" variant="ghost" className="h-7 text-xs">
+                                    Vedi
+                                  </Button>
                                 </Link>
                               </div>
                             </td>

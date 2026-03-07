@@ -202,7 +202,7 @@ export default function PartnerDashboard() {
           </CardHeader>
           <CardContent className="text-center">
             <Link href="/">
-              <a><Button>Torna alla Home</Button></a>
+              <Button>Torna alla Home</Button>
             </Link>
           </CardContent>
         </Card>
@@ -217,12 +217,10 @@ export default function PartnerDashboard() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/">
-                <a className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
-                  <ArrowLeft className="h-5 w-5" />
-                  <Music className="h-6 w-6" />
-                  <span className="font-bold">EventiPro</span>
-                </a>
+              <Link href="/" className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
+                <ArrowLeft className="h-5 w-5" />
+                <Music className="h-6 w-6" />
+                <span className="font-bold">EventiPro</span>
               </Link>
               <div className="h-6 w-px bg-border" />
               <span className="font-semibold">
@@ -468,18 +466,14 @@ export default function PartnerDashboard() {
                             </div>
                             <div className="flex gap-2 flex-shrink-0">
                               <Link href={`/events/${event.id}/edit`}>
-                                <a>
-                                  <Button size="sm" variant="outline">
-                                    Modifica
-                                  </Button>
-                                </a>
+                                <Button size="sm" variant="outline">
+                                  Modifica
+                                </Button>
                               </Link>
                               <Link href={`/events/${event.id}`}>
-                                <a>
-                                  <Button size="sm" variant="ghost">
-                                    Vedi
-                                  </Button>
-                                </a>
+                                <Button size="sm" variant="ghost">
+                                  Vedi
+                                </Button>
                               </Link>
                               <Button
                                 size="sm"
@@ -594,11 +588,9 @@ export default function PartnerDashboard() {
                         <div className="flex items-center gap-3">
                           {getStatusBadge(event.status)}
                           <Link href={`/events/${event.id}/edit`}>
-                            <a>
-                              <Button size="sm" variant="outline">
-                                Gestisci
-                              </Button>
-                            </a>
+                            <Button size="sm" variant="outline">
+                              Gestisci
+                            </Button>
                           </Link>
                         </div>
                       </div>
