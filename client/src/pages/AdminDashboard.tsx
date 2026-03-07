@@ -436,6 +436,13 @@ export default function AdminDashboard() {
                                     </Button>
                                   </>
                                 )}
+                                <Link href={`/events/${event.id}/edit`}>
+                                  <a>
+                                    <Button size="sm" variant="outline" className="h-7 text-xs">
+                                      Modifica
+                                    </Button>
+                                  </a>
+                                </Link>
                                 <Link href={`/events/${event.id}`}>
                                   <a>
                                     <Button size="sm" variant="ghost" className="h-7 text-xs">

@@ -644,3 +644,9 @@ export async function updateUserRole(userId: number, role: 'user' | 'admin' | 'p
 
   await db.update(users).set({ role }).where(eq(users.id, userId));
 }
+
+export async function deleteTicketCategory(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(ticketCategories).where(eq(ticketCategories.id, id));
+}

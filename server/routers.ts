@@ -221,6 +221,75 @@ export const appRouter = router({
         return await db.updateEvent(input.id, { status: 'rejected' });
       }),
 
+    // Update ticket category (price, quantity, name)
+    updateCategory: partnerProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().min(1).optional(),
+        description: z.string().optional(),
+        price: z.number().min(0).optional(),
+        totalQuantity: z.number().min(0).optional(),
+        availableQuantity: z.number().min(0).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const category = await db.getTicketCategoryById(input.id);
+        if (!category) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Category not found' });
+        }
+        const event = await db.getEventById(category.eventId);
+        if (!event) throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
+        if (event.organizerId !== ctx.user.id && ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized' });
+        }
+        const updates: any = {};
+        if (input.name !== undefined) updates.name = input.name;
+        if (input.description !== undefined) updates.description = input.description;
+        if (input.price !== undefined) updates.price = input.price.toString();
+        if (input.totalQuantity !== undefined) updates.totalQuantity = input.totalQuantity;
+        if (input.availableQuantity !== undefined) updates.availableQuantity = input.availableQuantity;
+        return await db.updateTicketCategory(input.id, updates);
+      }),
+
+    // Add new ticket category to existing event
+    addCategory: partnerProcedure
+      .input(z.object({
+        eventId: z.number(),
+        name: z.string().min(1),
+        description: z.string().optional(),
+        price: z.number().min(0),
+        quantity: z.number().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const event = await db.getEventById(input.eventId);
+        if (!event) throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
+        if (event.organizerId !== ctx.user.id && ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized' });
+        }
+        return await db.createTicketCategory({
+          eventId: input.eventId,
+          name: input.name,
+          description: input.description || null,
+          price: input.price.toString(),
+          totalQuantity: input.quantity,
+          availableQuantity: input.quantity,
+        });
+      }),
+
+    // Delete ticket category
+    deleteCategory: partnerProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const category = await db.getTicketCategoryById(input.id);
+        if (!category) throw new TRPCError({ code: 'NOT_FOUND', message: 'Category not found' });
+        const event = await db.getEventById(category.eventId);
+        if (!event) throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
+        if (event.organizerId !== ctx.user.id && ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized' });
+        }
+        await db.deleteTicketCategory(input.id);
+        return { success: true };
+      }),
+
     // Get event sales statistics
     stats: partnerProcedure
       .input(z.object({ eventId: z.number() }))

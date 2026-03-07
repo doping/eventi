@@ -8,6 +8,8 @@ import Home from "./pages/Home";
 import EventDetail from "./pages/EventDetail";
 import MyTickets from "./pages/MyTickets";
 import AdminDashboard from "./pages/AdminDashboard";
+import EventEdit from "./pages/EventEdit";
+import PartnerDashboard from "./pages/PartnerDashboard";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -17,6 +19,8 @@ function Router() {
       <Route path={"/events/:id"} component={EventDetail} />
       <Route path={"/my-tickets"} component={MyTickets} />
       <Route path={"/admin"} component={AdminDashboard} />
+      <Route path={"/events/:id/edit"} component={EventEdit} />
+      <Route path={"/partner"} component={PartnerDashboard} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

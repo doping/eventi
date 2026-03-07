@@ -160,3 +160,12 @@
 - [x] Validazione biglietti tramite QR code
 - [x] Gestione utenti e ruoli
 - [x] Route /admin registrata in App.tsx
+
+## Gestione Completa Eventi
+- [x] API modifica evento (titolo, descrizione, data, luogo, immagine, stato)
+- [x] API creazione/modifica/eliminazione categorie biglietti (nome, prezzo, quantità disponibile)
+- [x] Pagina /events/:id/edit con form completo modifica evento
+- [x] Sezione gestione categorie biglietti nella pagina modifica evento
+- [x] Pulsante "Modifica" nella dashboard admin tabella eventi
+- [x] Dashboard partner /partner con lista eventi propri e form creazione
+- [x] Route /partner e /events/:id/edit in App.tsx
