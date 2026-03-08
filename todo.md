@@ -186,3 +186,11 @@
 - [x] Menu hamburger a comparsa su mobile
 - [x] Navbar non sfonda su schermi piccoli
 - [x] Componente Navbar riutilizzabile creato
+
+## Fix Flusso Post-Acquisto
+- [x] Pulizia DB: eliminazione ordini falliti/in attesa
+- [x] Tabella orderItems per tracciare articoli carrello
+- [x] Fix mutation confirm: genera biglietti automaticamente post-pagamento
+- [x] Mostrare solo ordini completati in "I Miei Biglietti"
+- [x] Generazione PDF automatica al caricamento pagina CheckoutSuccess
+- [x] Notifica admin Manus per ogni nuovo ordine completato

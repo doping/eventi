@@ -9,6 +9,7 @@ import * as db from "./db";
 import { createCheckoutSession } from "./stripe";
 import { eurosToCents } from "../shared/products";
 import { generateMultipleTicketsPDF } from "./pdfGenerator";
+import { notifyOwner } from "./_core/notification";
 
 // ============ CUSTOM PROCEDURES ============
 
@@ -371,6 +372,20 @@ export const appRouter = router({
           status: 'pending',
         });
 
+        // Save order items for later ticket generation
+        for (const item of input.items) {
+          const category = await db.getTicketCategoryById(item.ticketCategoryId);
+          if (category) {
+            await db.createOrderItem({
+              orderId: order.id,
+              ticketCategoryId: item.ticketCategoryId,
+              eventId: category.eventId,
+              quantity: item.quantity,
+              unitPrice: category.price,
+            });
+          }
+        }
+
         // Create Stripe checkout session
         const session = await createCheckoutSession({
           userId: ctx.user.id,
@@ -414,11 +429,15 @@ export const appRouter = router({
       return await db.getOrdersByUser(ctx.user.id);
     }),
 
-    // Confirm order after payment (called by webhook or frontend)
+    // Confirm order after payment - generates tickets automatically
     confirm: protectedProcedure
       .input(z.object({ 
         orderNumber: z.string(),
         sessionId: z.string(),
+        items: z.array(z.object({
+          ticketCategoryId: z.number(),
+          quantity: z.number(),
+        })).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const order = await db.getOrderByNumber(input.orderNumber);
@@ -430,13 +449,65 @@ export const appRouter = router({
           throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized' });
         }
 
+        // If already completed, just return existing tickets
+        if (order.status === 'completed') {
+          const existingTickets = await db.getTicketsByOrder(order.id);
+          return { success: true, orderId: order.id, tickets: existingTickets };
+        }
+
         // Update order status
         await db.updateOrder(order.id, {
           status: 'completed',
           stripeSessionId: input.sessionId,
         });
 
-        return { success: true, orderId: order.id };
+        // Generate tickets from items
+        const generatedTickets = [];
+        let itemsToProcess: { ticketCategoryId: number; quantity: number }[] = [];
+        if (input.items && input.items.length > 0) {
+          itemsToProcess = input.items;
+        } else {
+          const savedItems = await db.getOrderItemsByOrder(order.id);
+          itemsToProcess = savedItems.map(i => ({ ticketCategoryId: i.ticketCategoryId, quantity: i.quantity }));
+        }
+
+        for (const item of itemsToProcess) {
+          const category = await db.getTicketCategoryById(item.ticketCategoryId);
+          if (!category) continue;
+
+          // Decrement available quantity
+          await db.decrementTicketAvailability(item.ticketCategoryId, item.quantity);
+
+          // Create tickets
+          for (let i = 0; i < item.quantity; i++) {
+            const qrCode = `TKT-${nanoid(16)}`;
+            const ticket = await db.createTicket({
+              orderId: order.id,
+              eventId: category.eventId,
+              ticketCategoryId: category.id,
+              qrCode,
+              holderName: ctx.user.name || null,
+              holderEmail: ctx.user.email || null,
+              isValidated: false,
+            });
+            generatedTickets.push(ticket);
+          }
+        }
+
+        // Notify admin of new order
+        try {
+          const event = generatedTickets.length > 0 
+            ? await db.getEventById(generatedTickets[0].eventId)
+            : null;
+          await notifyOwner({
+            title: `🎟️ Nuovo ordine: ${order.orderNumber}`,
+            content: `Nuovo acquisto completato!\n\nOrdine: ${order.orderNumber}\nAcquirente: ${ctx.user.name || ctx.user.email}\nBiglietti: ${generatedTickets.length}\nEvento: ${event?.title || 'N/A'}\nTotale: €${parseFloat(order.totalAmount).toFixed(2)}`,
+          });
+        } catch (e) {
+          console.warn('[Notification] Failed to notify admin of new order:', e);
+        }
+
+        return { success: true, orderId: order.id, tickets: generatedTickets };
       }),
   }),
 

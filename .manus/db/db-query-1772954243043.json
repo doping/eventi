@@ -1,0 +1,82 @@
+{
+  "query": "\n-- Prima vediamo cosa c'è nel DB\nSELECT o.id, o.orderNumber, o.status, o.totalAmount, o.createdAt, u.email, u.name\nFROM orders o\nLEFT JOIN users u ON o.userId = u.id\nORDER BY o.createdAt DESC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2gRzi2JNjZJsA8j.637269893e83 --database YeMoKzo8VPkdm7pjZGZC8T --execute \n-- Prima vediamo cosa c'è nel DB\nSELECT o.id, o.orderNumber, o.status, o.totalAmount, o.createdAt, u.email, u.name\nFROM orders o\nLEFT JOIN users u ON o.userId = u.id\nORDER BY o.createdAt DESC;\n",
+  "rows": [
+    {
+      "id": "120001",
+      "orderNumber": "ORD-IscQr2ZaY2",
+      "status": "completed",
+      "totalAmount": "45.00",
+      "createdAt": "2026-03-08 07:11:54",
+      "email": "yerimen@gmail.com",
+      "name": "juan yerimen laya (doping)"
+    },
+    {
+      "id": "90002",
+      "orderNumber": "ORD-8zKnvYWA7N",
+      "status": "pending",
+      "totalAmount": "40.00",
+      "createdAt": "2026-03-07 17:25:21",
+      "email": "yerimen@gmail.com",
+      "name": "juan yerimen laya (doping)"
+    },
+    {
+      "id": "90001",
+      "orderNumber": "ORD-CcmN7LceFJ",
+      "status": "pending",
+      "totalAmount": "40.00",
+      "createdAt": "2026-03-07 17:25:04",
+      "email": "yerimen@gmail.com",
+      "name": "juan yerimen laya (doping)"
+    },
+    {
+      "id": "60003",
+      "orderNumber": "ORD-mHlKejqW9W",
+      "status": "completed",
+      "totalAmount": "40.00",
+      "createdAt": "2026-03-07 16:43:02",
+      "email": "yerimen@gmail.com",
+      "name": "juan yerimen laya (doping)"
+    },
+    {
+      "id": "60002",
+      "orderNumber": "ORD-svKOvxNLrQ",
+      "status": "pending",
+      "totalAmount": "45.00",
+      "createdAt": "2026-03-07 16:37:17",
+      "email": "yerimen@gmail.com",
+      "name": "juan yerimen laya (doping)"
+    },
+    {
+      "id": "60001",
+      "orderNumber": "ORD-_t8xMnIug-",
+      "status": "pending",
+      "totalAmount": "80.00",
+      "createdAt": "2026-03-07 16:14:28",
+      "email": "yerimen@gmail.com",
+      "name": "juan yerimen laya (doping)"
+    },
+    {
+      "id": "30001",
+      "orderNumber": "ORD-hhjJGrgI-v",
+      "status": "pending",
+      "totalAmount": "90.00",
+      "createdAt": "2026-02-11 16:55:01",
+      "email": "yerimen@gmail.com",
+      "name": "juan yerimen laya (doping)"
+    },
+    {
+      "id": "1",
+      "orderNumber": "ORD-7O9igNo9rS",
+      "status": "pending",
+      "totalAmount": "75.00",
+      "createdAt": "2026-02-11 14:57:02",
+      "email": "yerimen@gmail.com",
+      "name": "juan yerimen laya (doping)"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\torderNumber\tstatus\ttotalAmount\tcreatedAt\temail\tname\n120001\tORD-IscQr2ZaY2\tcompleted\t45.00\t2026-03-08 07:11:54\tyerimen@gmail.com\tjuan yerimen laya (doping)\n90002\tORD-8zKnvYWA7N\tpending\t40.00\t2026-03-07 17:25:21\tyerimen@gmail.com\tjuan yerimen laya (doping)\n90001\tORD-CcmN7LceFJ\tpending\t40.00\t2026-03-07 17:25:04\tyerimen@gmail.com\tjuan yerimen laya (doping)\n60003\tORD-mHlKejqW9W\tcompleted\t40.00\t2026-03-07 16:43:02\tyerimen@gmail.com\tjuan yerimen laya (doping)\n60002\tORD-svKOvxNLrQ\tpending\t45.00\t2026-03-07 16:37:17\tyerimen@gmail.com\tjuan yerimen laya (doping)\n60001\tORD-_t8xMnIug-\tpending\t80.00\t2026-03-07 16:14:28\tyerimen@gmail.com\tjuan yerimen laya (doping)\n30001\tORD-hhjJGrgI-v\tpending\t90.00\t2026-02-11 16:55:01\tyerimen@gmail.com\tjuan yerimen laya (doping)\n1\tORD-7O9igNo9rS\tpending\t75.00\t2026-02-11 14:57:02\tyerimen@gmail.com\tjuan yerimen laya (doping)\n",
+  "stderr": "",
+  "execution_time_ms": 116
+}

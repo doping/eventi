@@ -1,0 +1,24 @@
+{
+  "query": "\n-- Elimina prima i biglietti degli ordini non completati\nDELETE t FROM tickets t\nINNER JOIN orders o ON t.orderId = o.id\nWHERE o.status != 'completed';\n\n-- Poi elimina gli ordini non completati\nDELETE FROM orders WHERE status != 'completed';\n\n-- Verifica risultato\nSELECT id, orderNumber, status, totalAmount, createdAt FROM orders ORDER BY createdAt DESC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2gRzi2JNjZJsA8j.637269893e83 --database YeMoKzo8VPkdm7pjZGZC8T --execute \n-- Elimina prima i biglietti degli ordini non completati\nDELETE t FROM tickets t\nINNER JOIN orders o ON t.orderId = o.id\nWHERE o.status != 'completed';\n\n-- Poi elimina gli ordini non completati\nDELETE FROM orders WHERE status != 'completed';\n\n-- Verifica risultato\nSELECT id, orderNumber, status, totalAmount, createdAt FROM orders ORDER BY createdAt DESC;\n",
+  "rows": [
+    {
+      "id": "120001",
+      "orderNumber": "ORD-IscQr2ZaY2",
+      "status": "completed",
+      "totalAmount": "45.00",
+      "createdAt": "2026-03-08 07:11:54"
+    },
+    {
+      "id": "60003",
+      "orderNumber": "ORD-mHlKejqW9W",
+      "status": "completed",
+      "totalAmount": "40.00",
+      "createdAt": "2026-03-07 16:43:02"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\torderNumber\tstatus\ttotalAmount\tcreatedAt\n120001\tORD-IscQr2ZaY2\tcompleted\t45.00\t2026-03-08 07:11:54\n60003\tORD-mHlKejqW9W\tcompleted\t40.00\t2026-03-07 16:43:02\n",
+  "stderr": "",
+  "execution_time_ms": 175
+}

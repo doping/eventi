@@ -1,4 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { generateTicketPDF } from "@/lib/ticketPDF";
@@ -9,7 +10,6 @@ import {
   Download,
   Loader2,
   MapPin,
-  Music,
   Ticket,
   XCircle,
 } from "lucide-react";
@@ -24,22 +24,23 @@ export default function CheckoutSuccess() {
   const orderNumber = params.get("order_number");
 
   const { user, isAuthenticated, loading } = useAuth();
-  const utils = trpc.useUtils();
 
   const [orderId, setOrderId] = useState<number | null>(null);
+  const [tickets, setTickets] = useState<any[]>([]);
   const [confirmed, setConfirmed] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [autoDownloaded, setAutoDownloaded] = useState(false);
   const confirmCalledRef = useRef(false);
 
-  // Step 1: Confirm the order via the backend
+  // Confirm order + generate tickets in one call
   const confirmOrder = trpc.orders.confirm.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setOrderId(data.orderId);
+      setTickets(data.tickets || []);
       setConfirmed(true);
     },
     onError: (err) => {
-      // Order may already be confirmed (e.g. via webhook), try to find it anyway
       if (err.message.includes("already") || err.message.includes("completed")) {
         setConfirmed(true);
       } else {
@@ -48,27 +49,13 @@ export default function CheckoutSuccess() {
     },
   });
 
-  // Step 2: Load order details once we have orderId
-  const { data: orderData, isLoading: orderLoading } = trpc.orders.getById.useQuery(
+  // Load order details (for PDF enrichment)
+  const { data: orderData } = trpc.orders.getById.useQuery(
     { id: orderId! },
     { enabled: !!orderId && confirmed }
   );
 
-  // Find orderId from myOrders if confirm didn't return it
-  const { data: myOrders } = trpc.orders.myOrders.useQuery(undefined, {
-    enabled: isAuthenticated && confirmed && !orderId,
-  });
-
-  useEffect(() => {
-    if (confirmed && !orderId && myOrders && myOrders.length > 0) {
-      const latest = [...myOrders].sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )[0];
-      setOrderId(latest.id);
-    }
-  }, [confirmed, orderId, myOrders]);
-
-  // Trigger confirmation once
+  // Trigger confirmation once auth is ready
   useEffect(() => {
     if (
       !confirmCalledRef.current &&
@@ -82,40 +69,23 @@ export default function CheckoutSuccess() {
     }
   }, [isAuthenticated, loading, sessionId, orderNumber]);
 
-  // ── PDF Download (client-side, no server) ──────────────────────
-  const handleDownloadPDF = async () => {
-    if (!orderData) return;
+  // Auto-generate PDF once tickets are ready
+  useEffect(() => {
+    if (!autoDownloaded && tickets.length > 0 && orderData) {
+      setAutoDownloaded(true);
+      handleDownloadPDF(tickets, orderData);
+    }
+  }, [tickets, orderData, autoDownloaded]);
+
+  // PDF generation
+  const handleDownloadPDF = async (ticketList?: any[], od?: typeof orderData) => {
+    const tks = ticketList || (orderData?.tickets ?? []);
+    const od2 = od || orderData;
+    if (!tks.length || !od2) return;
     setPdfLoading(true);
     try {
-      const { order, tickets } = orderData;
-
-      // Fetch event/category details for each ticket in parallel
-      const ticketDataList = await Promise.all(
-        tickets.map(async (ticket, idx) => {
-          // Use the checkStatus query data already cached, or fetch via REST
-          return {
-            qrCode: ticket.qrCode,
-            holderName: ticket.holderName,
-            holderEmail: ticket.holderEmail,
-            // These will be filled by the per-ticket fetch below
-            eventTitle: "",
-            eventDate: new Date(),
-            venueName: "",
-            venueCity: "",
-            venueAddress: null,
-            categoryName: "",
-            categoryPrice: "0",
-            orderNumber: order.orderNumber,
-            ticketIndex: idx + 1,
-            totalTickets: tickets.length,
-          };
-        })
-      );
-
-      // We need event/category data — fetch via tRPC checkStatus for each ticket
-      // Since we can't call hooks in a callback, we use the raw fetch approach
       const enriched = await Promise.all(
-        tickets.map(async (ticket, idx) => {
+        tks.map(async (ticket, idx) => {
           try {
             const res = await fetch(
               `/api/trpc/tickets.checkStatus?input=${encodeURIComponent(
@@ -126,7 +96,6 @@ export default function CheckoutSuccess() {
             const data = json?.result?.data?.json;
             const event = data?.event;
             const category = data?.category;
-
             return {
               qrCode: ticket.qrCode,
               holderName: ticket.holderName,
@@ -138,26 +107,38 @@ export default function CheckoutSuccess() {
               venueAddress: event?.venueAddress ?? null,
               categoryName: category?.name ?? "Biglietto",
               categoryPrice: category?.price ?? "0",
-              orderNumber: orderData.order.orderNumber,
+              orderNumber: od2.order.orderNumber,
               ticketIndex: idx + 1,
-              totalTickets: tickets.length,
+              totalTickets: tks.length,
             };
           } catch {
-            return ticketDataList[idx];
+            return {
+              qrCode: ticket.qrCode,
+              holderName: ticket.holderName,
+              holderEmail: ticket.holderEmail,
+              eventTitle: "Evento",
+              eventDate: new Date(),
+              venueName: "",
+              venueCity: "",
+              venueAddress: null,
+              categoryName: "Biglietto",
+              categoryPrice: "0",
+              orderNumber: od2.order.orderNumber,
+              ticketIndex: idx + 1,
+              totalTickets: tks.length,
+            };
           }
         })
       );
-
       await generateTicketPDF(enriched);
     } catch (err) {
       console.error("PDF generation error:", err);
-      alert("Errore nella generazione del PDF. Riprova.");
     } finally {
       setPdfLoading(false);
     }
   };
 
-  // ── Render states ───────────────────────────────────────────────
+  // ── Render states ──────────────────────────────────────────────
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -210,7 +191,7 @@ export default function CheckoutSuccess() {
     );
   }
 
-  if (!confirmed || (confirmed && orderId && orderLoading)) {
+  if (!confirmed) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-6 bg-muted/20">
         <div className="text-center space-y-3">
@@ -225,19 +206,11 @@ export default function CheckoutSuccess() {
   }
 
   const order = orderData?.order;
-  const tickets = orderData?.tickets ?? [];
+  const displayTickets = orderData?.tickets?.length ? orderData.tickets : tickets;
 
   return (
     <div className="min-h-screen bg-muted/20">
-      {/* Header */}
-      <header className="bg-white border-b">
-        <div className="container mx-auto px-4 py-4">
-          <Link href="/" className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity w-fit">
-            <Music className="h-6 w-6" />
-            <span className="font-bold text-lg">EventiPro</span>
-          </Link>
-        </div>
-      </header>
+      <Navbar />
 
       <div className="container mx-auto px-4 py-10 max-w-3xl">
         {/* Success Banner */}
@@ -247,7 +220,7 @@ export default function CheckoutSuccess() {
           </div>
           <h1 className="text-3xl font-bold font-serif mb-2">Pagamento Completato!</h1>
           <p className="text-muted-foreground text-lg">
-            I tuoi biglietti sono pronti. Presentali all'ingresso con il QR code.
+            I tuoi biglietti sono pronti. Il PDF è stato scaricato automaticamente.
           </p>
           {order && (
             <p className="text-sm text-muted-foreground mt-2">
@@ -258,10 +231,10 @@ export default function CheckoutSuccess() {
         </div>
 
         {/* Download PDF Button */}
-        {tickets.length > 0 && (
+        {displayTickets.length > 0 && (
           <div className="flex justify-center mb-8">
             <Button
-              onClick={handleDownloadPDF}
+              onClick={() => handleDownloadPDF()}
               disabled={pdfLoading}
               size="lg"
               className="gap-2 px-8"
@@ -277,26 +250,23 @@ export default function CheckoutSuccess() {
         )}
 
         {/* Tickets with QR codes */}
-        {tickets.length === 0 ? (
+        {displayTickets.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
-              <Ticket className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+              <Loader2 className="h-12 w-12 mx-auto text-primary animate-spin mb-3" />
               <p className="text-muted-foreground mb-4">
-                I biglietti sono in fase di generazione...
+                Caricamento biglietti in corso...
               </p>
-              <Link href="/my-tickets">
-                <Button variant="outline">Vai a I Miei Biglietti</Button>
-              </Link>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-6">
-            {tickets.map((ticket, index) => (
+            {displayTickets.map((ticket, index) => (
               <TicketCard
                 key={ticket.id}
                 ticket={ticket}
                 index={index}
-                totalTickets={tickets.length}
+                totalTickets={displayTickets.length}
                 orderNumber={order?.orderNumber ?? ""}
               />
             ))}
@@ -379,94 +349,76 @@ function TicketCard({
             {category && ` — ${category.name}`}
           </span>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-mono text-muted-foreground hidden sm:block">{ticket.qrCode}</span>
-          <Button
-            size="sm"
-            variant="outline"
-            className="gap-1 h-7 text-xs"
-            onClick={handleSinglePDF}
-            disabled={pdfLoading || !event}
-          >
-            {pdfLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
-            PDF
-          </Button>
-        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleSinglePDF}
+          disabled={pdfLoading || !event}
+          className="gap-1.5 text-xs"
+        >
+          {pdfLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
+          PDF
+        </Button>
       </div>
 
       <CardContent className="p-6">
-        <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
+        <div className="flex flex-col md:flex-row gap-6 items-start">
           {/* QR Code */}
-          <div className="flex-shrink-0">
-            <div className="bg-white p-4 rounded-xl border-2 border-primary/20 shadow-sm">
-              <QRCode
-                value={ticket.qrCode}
-                size={160}
-                style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                viewBox="0 0 256 256"
-              />
+          <div className="flex-shrink-0 flex flex-col items-center gap-2">
+            <div className="bg-white p-3 rounded-lg border-2 border-primary/20 shadow-sm">
+              <QRCode value={ticket.qrCode} size={120} />
             </div>
-            <p className="text-xs text-center text-muted-foreground mt-2">
-              Mostra all'ingresso
+            <p className="text-xs text-muted-foreground font-mono text-center break-all max-w-[140px]">
+              {ticket.qrCode}
             </p>
           </div>
 
-          {/* Event Details */}
+          {/* Ticket Details */}
           <div className="flex-1 space-y-3">
             {event ? (
               <>
-                <h3 className="text-xl font-bold font-serif">{event.title}</h3>
-                <div className="space-y-2 text-sm text-muted-foreground">
+                <h3 className="font-bold text-lg font-serif leading-tight">{event.title}</h3>
+                <div className="space-y-1.5 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-primary flex-shrink-0" />
+                    <Calendar className="h-4 w-4 flex-shrink-0" />
                     <span>
                       {new Date(event.eventDate).toLocaleDateString("it-IT", {
                         weekday: "long",
                         day: "numeric",
                         month: "long",
                         year: "numeric",
-                      })}{" "}
-                      alle{" "}
-                      {new Date(event.eventDate).toLocaleTimeString("it-IT", {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+                    <MapPin className="h-4 w-4 flex-shrink-0" />
                     <span>{event.venueName}, {event.venueCity}</span>
                   </div>
-                  {event.venueAddress && (
-                    <div className="flex items-start gap-2">
-                      <MapPin className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-                      <span>{event.venueAddress}</span>
-                    </div>
+                </div>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                    {category?.name}
+                  </span>
+                  {category?.price && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+                      €{parseFloat(category.price).toFixed(2)}
+                    </span>
                   )}
                 </div>
-
-                {category && (
-                  <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1.5 rounded-full text-sm font-medium">
-                    <Ticket className="h-3.5 w-3.5" />
-                    {category.name}
-                    {category.price && ` — €${parseFloat(category.price).toFixed(2)}`}
-                  </div>
-                )}
-
-                {ticket.holderName && (
-                  <p className="text-sm text-muted-foreground">
-                    Intestato a:{" "}
-                    <span className="font-medium text-foreground">{ticket.holderName}</span>
-                  </p>
-                )}
               </>
             ) : (
-              <div className="space-y-2">
-                <div className="h-6 bg-muted rounded animate-pulse w-48" />
-                <div className="h-4 bg-muted rounded animate-pulse w-32" />
-                <div className="h-4 bg-muted rounded animate-pulse w-40" />
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm">Caricamento dettagli...</span>
               </div>
             )}
+            <div className="pt-2 border-t">
+              <p className="text-xs text-muted-foreground">
+                Intestatario: <span className="font-medium text-foreground">{ticket.holderName}</span>
+              </p>
+            </div>
           </div>
         </div>
       </CardContent>

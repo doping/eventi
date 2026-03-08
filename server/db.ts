@@ -23,7 +23,10 @@ import {
   InsertTransaction,
   emailQueue,
   EmailQueue,
-  InsertEmailQueue
+  InsertEmailQueue,
+  orderItems,
+  OrderItem,
+  InsertOrderItem
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -316,7 +319,7 @@ export async function getOrdersByUser(userId: number) {
   return await db
     .select()
     .from(orders)
-    .where(eq(orders.userId, userId))
+    .where(and(eq(orders.userId, userId), eq(orders.status, 'completed')))
     .orderBy(desc(orders.createdAt));
 }
 
@@ -649,4 +652,26 @@ export async function deleteTicketCategory(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.delete(ticketCategories).where(eq(ticketCategories.id, id));
+}
+
+// ============ ORDER ITEMS ============
+
+export async function createOrderItem(item: InsertOrderItem): Promise<OrderItem> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(orderItems).values(item);
+  const insertedId = Number(result[0].insertId);
+  const created = await db.select().from(orderItems).where(eq(orderItems.id, insertedId)).limit(1);
+  return created[0];
+}
+
+export async function getOrderItemsByOrder(orderId: number): Promise<OrderItem[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db
+    .select()
+    .from(orderItems)
+    .where(eq(orderItems.orderId, orderId));
 }

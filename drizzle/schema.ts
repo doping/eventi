@@ -118,6 +118,24 @@ export type Ticket = typeof tickets.$inferSelect;
 export type InsertTicket = typeof tickets.$inferInsert;
 
 /**
+ * Order items - tracks individual items within an order
+ */
+export const orderItems = mysqlTable("orderItems", {
+  id: int("id").autoincrement().primaryKey(),
+  orderId: int("orderId").notNull(), // references orders.id
+  ticketCategoryId: int("ticketCategoryId").notNull(), // references ticketCategories.id
+  eventId: int("eventId").notNull(), // references events.id
+  quantity: int("quantity").notNull(),
+  unitPrice: decimal("unitPrice", { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  orderIdx: index("order_item_order_idx").on(table.orderId),
+}));
+
+export type OrderItem = typeof orderItems.$inferSelect;
+export type InsertOrderItem = typeof orderItems.$inferInsert;
+
+/**
  * Commission settings - configurable fees for partner events
  */
 export const commissionSettings = mysqlTable("commissionSettings", {

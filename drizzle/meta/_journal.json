@@ -15,6 +15,13 @@
       "when": 1770820573556,
       "tag": "0001_friendly_pixie",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1772954332028,
+      "tag": "0002_fuzzy_praxagora",
+      "breakpoints": true
     }
   ]
 }
