@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { getLoginUrl } from "@/const";
-import { Menu, Music, Ticket, X } from "lucide-react";
+import { Menu, Music, Ticket, X, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 
@@ -49,11 +49,19 @@ export default function Navbar() {
               {isAuthenticated ? (
                 <>
                   {isAdmin && (
-                    <Link href="/admin">
-                      <Button variant="ghost" size="sm">
-                        Dashboard Admin
-                      </Button>
-                    </Link>
+                    <>
+                      <Link href="/admin">
+                        <Button variant="ghost" size="sm">
+                          Dashboard Admin
+                        </Button>
+                      </Link>
+                      <Link href="/site-settings">
+                        <Button variant="ghost" size="sm" className="gap-1.5">
+                          <Settings className="h-4 w-4" />
+                          Impostazioni
+                        </Button>
+                      </Link>
+                    </>
                   )}
                   {isPartner && (
                     <Link href="/partner">
@@ -164,11 +172,18 @@ export default function Navbar() {
               )}
 
               {isAdmin && (
-                <Link href="/admin">
-                  <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
-                    ⚙️ Dashboard Admin
-                  </button>
-                </Link>
+                <>
+                  <Link href="/admin">
+                    <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
+                      ⚙️ Dashboard Admin
+                    </button>
+                  </Link>
+                  <Link href="/site-settings">
+                    <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
+                      🎨 Impostazioni Sito
+                    </button>
+                  </Link>
+                </>
               )}
 
               <div className="mt-3 pt-3 border-t">

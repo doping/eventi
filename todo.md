@@ -194,3 +194,15 @@
 - [x] Mostrare solo ordini completati in "I Miei Biglietti"
 - [x] Generazione PDF automatica al caricamento pagina CheckoutSuccess
 - [x] Notifica admin Manus per ogni nuovo ordine completato
+
+## Nuove Funzionalità - Sprint 3
+- [x] Sistema validazione QR code con URL pubblico /verify/:qrCode
+- [x] Pagina pubblica di verifica biglietto con stato (non verificato / già usato)
+- [x] Prevenzione doppia scansione con messaggio di errore
+- [x] Supporto eventi multi-data (stesso evento, date/orari diversi)
+- [x] Schema DB: tabella eventDates separata per le date
+- [x] UI gestione date aggiuntive in EventEdit
+- [x] Pannello admin personalizzazione sito /site-settings
+- [x] Tabella siteSettings nel DB per configurazioni
+- [x] API per lettura/scrittura impostazioni sito (getAll, get, set, setBulk)
+- [x] Link Impostazioni Sito nella navbar per admin (desktop + mobile)

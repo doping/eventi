@@ -686,6 +686,108 @@ export const appRouter = router({
       }),
   }),
 
+  // ============ EVENT DATES (multi-date support) ============
+  eventDates: router({
+    // Get all dates for an event
+    list: publicProcedure
+      .input(z.object({ eventId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getEventDates(input.eventId);
+      }),
+
+    // Add a date to an event
+    add: partnerProcedure
+      .input(z.object({
+        eventId: z.number(),
+        startDate: z.string(),
+        endDate: z.string().optional(),
+        label: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const event = await db.getEventById(input.eventId);
+        if (!event) throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
+        if (event.organizerId !== ctx.user.id && ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized' });
+        }
+        return await db.createEventDate({
+          eventId: input.eventId,
+          startDate: new Date(input.startDate),
+          endDate: input.endDate ? new Date(input.endDate) : null,
+          label: input.label || null,
+          isActive: true,
+        });
+      }),
+
+    // Update a date
+    update: partnerProcedure
+      .input(z.object({
+        id: z.number(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+        label: z.string().optional(),
+        isActive: z.boolean().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const updates: any = {};
+        if (input.startDate) updates.startDate = new Date(input.startDate);
+        if (input.endDate) updates.endDate = new Date(input.endDate);
+        if (input.label !== undefined) updates.label = input.label;
+        if (input.isActive !== undefined) updates.isActive = input.isActive;
+        return await db.updateEventDate(input.id, updates);
+      }),
+
+    // Delete a date
+    delete: partnerProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.deleteEventDate(input.id);
+        return { success: true };
+      }),
+  }),
+
+  // ============ SITE SETTINGS ============
+  siteSettings: router({
+    // Get all settings (public - needed for frontend theming)
+    getAll: publicProcedure.query(async () => {
+      return await db.getAllSiteSettings();
+    }),
+
+    // Get a single setting by key
+    get: publicProcedure
+      .input(z.object({ key: z.string() }))
+      .query(async ({ input }) => {
+        return await db.getSiteSetting(input.key);
+      }),
+
+    // Update a setting (admin only)
+    set: adminProcedure
+      .input(z.object({
+        key: z.string(),
+        value: z.string().nullable(),
+        type: z.enum(['text', 'color', 'image', 'boolean', 'json']).optional(),
+        label: z.string().optional(),
+        description: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return await db.setSiteSetting(input.key, input.value, input.type, input.label, input.description);
+      }),
+
+    // Bulk update settings (admin only)
+    setBulk: adminProcedure
+      .input(z.array(z.object({
+        key: z.string(),
+        value: z.string().nullable(),
+        type: z.enum(['text', 'color', 'image', 'boolean', 'json']).optional(),
+        label: z.string().optional(),
+      })))
+      .mutation(async ({ input }) => {
+        for (const setting of input) {
+          await db.setSiteSetting(setting.key, setting.value, setting.type, setting.label);
+        }
+        return { success: true };
+      }),
+  }),
+
   // ============ COMMISSIONS ============
   commissions: router({
     // Get commission for partner

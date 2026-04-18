@@ -193,3 +193,38 @@ export const emailQueue = mysqlTable("emailQueue", {
 
 export type EmailQueue = typeof emailQueue.$inferSelect;
 export type InsertEmailQueue = typeof emailQueue.$inferInsert;
+
+/**
+ * Event dates - supports multi-date events (same event, different dates/times)
+ */
+export const eventDates = mysqlTable("eventDates", {
+  id: int("id").autoincrement().primaryKey(),
+  eventId: int("eventId").notNull(), // references events.id
+  startDate: timestamp("startDate").notNull(),
+  endDate: timestamp("endDate"),
+  label: varchar("label", { length: 100 }), // e.g. "Serata 1", "Replica"
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  eventIdx: index("event_date_event_idx").on(table.eventId),
+  startDateIdx: index("event_date_start_idx").on(table.startDate),
+}));
+
+export type EventDate = typeof eventDates.$inferSelect;
+export type InsertEventDate = typeof eventDates.$inferInsert;
+
+/**
+ * Site settings - admin-configurable UI settings (colors, logo, texts)
+ */
+export const siteSettings = mysqlTable("siteSettings", {
+  id: int("id").autoincrement().primaryKey(),
+  settingKey: varchar("settingKey", { length: 100 }).notNull().unique(),
+  settingValue: text("settingValue"),
+  settingType: mysqlEnum("settingType", ["text", "color", "image", "boolean", "json"]).default("text").notNull(),
+  label: varchar("label", { length: 255 }),
+  description: text("description"),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SiteSetting = typeof siteSettings.$inferSelect;
+export type InsertSiteSetting = typeof siteSettings.$inferInsert;

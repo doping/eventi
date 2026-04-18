@@ -15,6 +15,8 @@ import {
   Ticket,
   Trash2,
   Users,
+  Calendar,
+  CalendarPlus,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "wouter";
@@ -52,6 +54,12 @@ export default function EventEdit() {
   // Categories state
   const [categories, setCategories] = useState<CategoryForm[]>([]);
   const [deletedCategoryIds, setDeletedCategoryIds] = useState<number[]>([]);
+
+  // Multi-date state
+  const [newDateStart, setNewDateStart] = useState("");
+  const [newDateEnd, setNewDateEnd] = useState("");
+  const [newDateLabel, setNewDateLabel] = useState("");
+  const [isAddingDate, setIsAddingDate] = useState(false);
 
   const { data, isLoading } = trpc.events.getById.useQuery(
     { id: eventId },
@@ -107,6 +115,30 @@ export default function EventEdit() {
   const deleteCategory = trpc.events.deleteCategory.useMutation({
     onError: (err) => toast.error(`Errore eliminazione: ${err.message}`),
   });
+
+  // Multi-date mutations
+  const { data: eventDatesData, refetch: refetchDates } = trpc.eventDates.list.useQuery(
+    { eventId },
+    { enabled: !!eventId && !isNaN(eventId) }
+  );
+  const addDateMutation = trpc.eventDates.add.useMutation({
+    onSuccess: () => { refetchDates(); setNewDateStart(""); setNewDateEnd(""); setNewDateLabel(""); setIsAddingDate(false); toast.success("Data aggiunta!"); },
+    onError: (err) => toast.error(err.message),
+  });
+  const deleteDateMutation = trpc.eventDates.delete.useMutation({
+    onSuccess: () => { refetchDates(); toast.success("Data eliminata"); },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const handleAddDate = async () => {
+    if (!newDateStart) { toast.error("Inserisci almeno la data di inizio"); return; }
+    await addDateMutation.mutateAsync({
+      eventId,
+      startDate: newDateStart,
+      endDate: newDateEnd || undefined,
+      label: newDateLabel || undefined,
+    });
+  };
 
   const handleAddCategory = () => {
     setCategories((prev) => [
@@ -568,6 +600,85 @@ export default function EventEdit() {
                     </div>
                   ))}
                 </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Multi-Date Card */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-primary" />
+                    Date Aggiuntive
+                  </CardTitle>
+                  <CardDescription>
+                    Aggiungi repliche o serate multiple per lo stesso evento (stessa descrizione, immagine e biglietti)
+                  </CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setIsAddingDate(!isAddingDate)} className="gap-2">
+                  <CalendarPlus className="h-4 w-4" />
+                  Aggiungi Data
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Add date form */}
+              {isAddingDate && (
+                <div className="p-4 border-2 border-dashed border-primary/30 rounded-lg bg-primary/5 space-y-3">
+                  <p className="text-sm font-semibold text-primary">✨ Nuova data/replica</p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Data Inizio *</Label>
+                      <Input type="datetime-local" value={newDateStart} onChange={e => setNewDateStart(e.target.value)} className="h-9" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Data Fine</Label>
+                      <Input type="datetime-local" value={newDateEnd} onChange={e => setNewDateEnd(e.target.value)} className="h-9" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Etichetta (opzionale)</Label>
+                      <Input value={newDateLabel} onChange={e => setNewDateLabel(e.target.value)} placeholder="Es. Serata 1, Replica..." className="h-9" />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={handleAddDate} disabled={addDateMutation.isPending} className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      {addDateMutation.isPending ? "Aggiunta..." : "Aggiungi"}
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setIsAddingDate(false)}>Annulla</Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Dates list */}
+              {eventDatesData && eventDatesData.length > 0 ? (
+                <div className="space-y-2">
+                  {eventDatesData.map((d, i) => (
+                    <div key={d.id} className="flex items-center justify-between p-3 border rounded-lg bg-white">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">{i + 1}</div>
+                        <div>
+                          <p className="text-sm font-medium">
+                            {d.label || `Replica ${i + 1}`}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(d.startDate).toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                            {d.endDate && ` → ${new Date(d.endDate).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}`}
+                          </p>
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={() => deleteDateMutation.mutate({ id: d.id })} className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Nessuna data aggiuntiva. Clicca "Aggiungi Data" per inserire repliche o serate multiple.
+                </p>
               )}
             </CardContent>
           </Card>

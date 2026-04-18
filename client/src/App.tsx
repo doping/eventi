@@ -12,6 +12,8 @@ import EventEdit from "./pages/EventEdit";
 import PartnerDashboard from "./pages/PartnerDashboard";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 import CheckoutCancel from "./pages/CheckoutCancel";
+import TicketVerify from "./pages/TicketVerify";
+import SiteSettings from "./pages/SiteSettings";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -25,6 +27,8 @@ function Router() {
       <Route path={"/partner"} component={PartnerDashboard} />
       <Route path={"/checkout/success"} component={CheckoutSuccess} />
       <Route path={"/checkout/cancel"} component={CheckoutCancel} />
+      <Route path={"/verify/:qrCode"} component={TicketVerify} />
+      <Route path={"/site-settings"} component={SiteSettings} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

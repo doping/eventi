@@ -26,7 +26,13 @@ import {
   InsertEmailQueue,
   orderItems,
   OrderItem,
-  InsertOrderItem
+  InsertOrderItem,
+  eventDates,
+  EventDate,
+  InsertEventDate,
+  siteSettings,
+  SiteSetting,
+  InsertSiteSetting
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -674,4 +680,76 @@ export async function getOrderItemsByOrder(orderId: number): Promise<OrderItem[]
     .select()
     .from(orderItems)
     .where(eq(orderItems.orderId, orderId));
+}
+
+// ============ EVENT DATES ============
+
+export async function getEventDates(eventId: number): Promise<EventDate[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(eventDates).where(eq(eventDates.eventId, eventId)).orderBy(eventDates.startDate);
+}
+
+export async function createEventDate(data: InsertEventDate): Promise<EventDate> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  const result = await db.insert(eventDates).values(data);
+  const insertedId = Number((result[0] as any).insertId);
+  const [created] = await db.select().from(eventDates).where(eq(eventDates.id, insertedId)).limit(1);
+  return created;
+}
+
+export async function updateEventDate(id: number, updates: Partial<InsertEventDate>): Promise<EventDate | undefined> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  await db.update(eventDates).set(updates).where(eq(eventDates.id, id));
+  const [updated] = await db.select().from(eventDates).where(eq(eventDates.id, id)).limit(1);
+  return updated;
+}
+
+export async function deleteEventDate(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  await db.delete(eventDates).where(eq(eventDates.id, id));
+}
+
+// ============ SITE SETTINGS ============
+
+export async function getAllSiteSettings(): Promise<SiteSetting[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(siteSettings);
+}
+
+export async function getSiteSetting(key: string): Promise<SiteSetting | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const [setting] = await db.select().from(siteSettings).where(eq(siteSettings.settingKey, key)).limit(1);
+  return setting || null;
+}
+
+export async function setSiteSetting(
+  key: string,
+  value: string | null,
+  type?: 'text' | 'color' | 'image' | 'boolean' | 'json',
+  label?: string,
+  description?: string
+): Promise<SiteSetting | null> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  await db.insert(siteSettings).values({
+    settingKey: key,
+    settingValue: value,
+    settingType: type || 'text',
+    label: label || null,
+    description: description || null,
+  }).onDuplicateKeyUpdate({
+    set: {
+      settingValue: value,
+      ...(type ? { settingType: type } : {}),
+      ...(label !== undefined ? { label } : {}),
+      ...(description !== undefined ? { description } : {}),
+    }
+  });
+  return await getSiteSetting(key);
 }
