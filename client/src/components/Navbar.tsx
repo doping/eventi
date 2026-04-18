@@ -1,9 +1,10 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { getLoginUrl } from "@/const";
-import { Menu, Music, Ticket, X, Settings, PlusCircle } from "lucide-react";
+import { Menu, Music, Ticket, X, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -29,6 +30,7 @@ export default function Navbar() {
 
   const isAdmin = user?.role === "admin";
   const isPartner = user?.role === "partner" || user?.role === "admin";
+  const siteSettings = useSiteSettings();
 
   return (
     <>
@@ -40,8 +42,18 @@ export default function Navbar() {
               href="/"
               className="flex items-center gap-2 text-xl font-bold text-primary flex-shrink-0"
             >
-              <Music className="h-6 w-6" />
-              <span className="font-serif">EventiPro</span>
+              {siteSettings.siteLogoUrl ? (
+                <img
+                  src={siteSettings.siteLogoUrl}
+                  alt={siteSettings.siteName}
+                  className="h-8 w-auto object-contain max-w-[120px]"
+                />
+              ) : (
+                <>
+                  <Music className="h-6 w-6" />
+                  <span className="font-serif">{siteSettings.siteName}</span>
+                </>
+              )}
             </Link>
 
             {/* Desktop menu */}
@@ -63,21 +75,7 @@ export default function Navbar() {
                       </Link>
                     </>
                   )}
-                  {isPartner && (
-                    <>
-                      <Link href="/partner">
-                        <Button variant="ghost" size="sm">
-                          I Miei Eventi
-                        </Button>
-                      </Link>
-                      <Link href="/events/new">
-                        <Button size="sm" className="gap-1.5">
-                          <PlusCircle className="h-4 w-4" />
-                          Crea Evento
-                        </Button>
-                      </Link>
-                    </>
-                  )}
+
                   <Link href="/my-tickets">
                     <Button variant="ghost" size="sm" className="gap-1.5">
                       <Ticket className="h-4 w-4" />
@@ -133,8 +131,18 @@ export default function Navbar() {
         {/* Drawer header */}
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <div className="flex items-center gap-2 text-primary font-bold font-serif">
-            <Music className="h-5 w-5" />
-            <span>EventiPro</span>
+            {siteSettings.siteLogoUrl ? (
+              <img
+                src={siteSettings.siteLogoUrl}
+                alt={siteSettings.siteName}
+                className="h-7 w-auto object-contain max-w-[100px]"
+              />
+            ) : (
+              <>
+                <Music className="h-5 w-5" />
+                <span>{siteSettings.siteName}</span>
+              </>
+            )}
           </div>
           <button
             onClick={() => setMenuOpen(false)}

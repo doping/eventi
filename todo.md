@@ -217,3 +217,18 @@
 - [x] Filtro eventi passati dalla homepage (solo eventi futuri)
 - [x] Aggiornamento date eventi seed al futuro (2026)
 - [x] API pubblica filtra per data >= oggi
+
+## Bug Fix - Impostazioni Sito Non Applicate
+- [x] Context globale SiteSettings che carica impostazioni dal DB
+- [x] Applicazione dinamica colori CSS via CSS variables
+- [x] Logo dinamico nella navbar dal DB
+- [x] Nome sito dinamico nella navbar
+
+## Sprint 5 - Admin Dashboard e Impostazioni Dinamiche
+- [x] Spostare "Crea Evento" dalla navbar alla Dashboard Admin
+- [x] Form creazione evento funzionante nella Dashboard Admin
+- [x] Rimuovere link "Crea Evento" e "I Miei Eventi" dalla navbar (sono funzioni admin)
+- [x] SiteSettingsContext globale che carica impostazioni dal DB all'avvio
+- [x] Applicazione dinamica colori CSS via CSS variables (--color-primary ecc.)
+- [x] Logo dinamico nella navbar dal DB
+- [x] Nome sito dinamico nella navbar

@@ -19,8 +19,14 @@ import {
   XCircle,
   AlertCircle,
   ArrowLeft,
+  PlusCircle,
+  X,
+  Upload,
 } from "lucide-react";
-import { useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import ImageUpload from "@/components/ImageUpload";
+import { useState, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 
@@ -30,6 +36,20 @@ export default function AdminDashboard() {
   const [qrInput, setQrInput] = useState("");
   const [validationResult, setValidationResult] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("overview");
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newEvent, setNewEvent] = useState({
+    title: "",
+    description: "",
+    category: "classica",
+    eventDate: "",
+    eventTime: "20:30",
+    venueName: "",
+    venueCity: "",
+    venueAddress: "",
+    imageUrl: "",
+    maxCapacity: 500,
+  });
+  const [isCreating, setIsCreating] = useState(false);
 
   const utils = trpc.useUtils();
 
@@ -83,6 +103,44 @@ export default function AdminDashboard() {
       toast.error(err.message);
     },
   });
+
+  const createEvent = trpc.events.create.useMutation({
+    onSuccess: () => {
+      toast.success("Evento creato con successo!");
+      setShowCreateForm(false);
+      setNewEvent({ title: "", description: "", category: "classica", eventDate: "", eventTime: "20:30", venueName: "", venueCity: "", venueAddress: "", imageUrl: "", maxCapacity: 500 });
+      utils.admin.allEvents.invalidate();
+      utils.admin.stats.invalidate();
+      setIsCreating(false);
+    },
+    onError: (err) => {
+      toast.error(err.message);
+      setIsCreating(false);
+    },
+  });
+
+  const handleCreateEvent = () => {
+    if (!newEvent.title || !newEvent.eventDate || !newEvent.venueName || !newEvent.venueCity) {
+      toast.error("Compila tutti i campi obbligatori (titolo, data, venue, città)");
+      return;
+    }
+    setIsCreating(true);
+    const dateTime = `${newEvent.eventDate}T${newEvent.eventTime}:00`;
+    createEvent.mutate({
+      title: newEvent.title,
+      description: newEvent.description,
+      category: newEvent.category as any,
+      eventDate: dateTime,
+      venueName: newEvent.venueName,
+      venueCity: newEvent.venueCity,
+      venueAddress: newEvent.venueAddress,
+      imageUrl: newEvent.imageUrl || undefined,
+      ticketCategories: [
+        { name: "Platea", price: 30, quantity: 200 },
+        { name: "Galleria", price: 20, quantity: 100 },
+      ],
+    });
+  };
 
   const updateUserRole = trpc.admin.updateUserRole.useMutation({
     onSuccess: () => {
@@ -339,12 +397,136 @@ export default function AdminDashboard() {
 
           {/* ===== EVENTS TAB ===== */}
           <TabsContent value="events">
+            {/* Form Crea Evento */}
+            {showCreateForm && (
+              <Card className="mb-6 border-primary/30 shadow-md">
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <PlusCircle className="h-5 w-5 text-primary" />
+                      Crea Nuovo Evento
+                    </CardTitle>
+                    <CardDescription>Compila i campi per creare un nuovo evento. Le categorie biglietti possono essere modificate dopo la creazione.</CardDescription>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => setShowCreateForm(false)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <Label>Titolo evento *</Label>
+                      <Input
+                        placeholder="Es. La Traviata - Opera di Verdi"
+                        value={newEvent.title}
+                        onChange={e => setNewEvent(p => ({ ...p, title: e.target.value }))}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label>Descrizione</Label>
+                      <Textarea
+                        placeholder="Descrizione dell'evento..."
+                        value={newEvent.description}
+                        onChange={e => setNewEvent(p => ({ ...p, description: e.target.value }))}
+                        className="mt-1"
+                        rows={3}
+                      />
+                    </div>
+                    <div>
+                      <Label>Categoria *</Label>
+                      <Select value={newEvent.category} onValueChange={v => setNewEvent(p => ({ ...p, category: v }))}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="classica">Musica Classica</SelectItem>
+                          <SelectItem value="lirica">Opera Lirica</SelectItem>
+                          <SelectItem value="teatro">Teatro</SelectItem>
+                          <SelectItem value="danza">Danza</SelectItem>
+                          <SelectItem value="altro">Altro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Data evento *</Label>
+                      <Input
+                        type="date"
+                        value={newEvent.eventDate}
+                        onChange={e => setNewEvent(p => ({ ...p, eventDate: e.target.value }))}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label>Orario</Label>
+                      <Input
+                        type="time"
+                        value={newEvent.eventTime}
+                        onChange={e => setNewEvent(p => ({ ...p, eventTime: e.target.value }))}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label>Nome venue *</Label>
+                      <Input
+                        placeholder="Es. Teatro alla Scala"
+                        value={newEvent.venueName}
+                        onChange={e => setNewEvent(p => ({ ...p, venueName: e.target.value }))}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label>Città *</Label>
+                      <Input
+                        placeholder="Es. Milano"
+                        value={newEvent.venueCity}
+                        onChange={e => setNewEvent(p => ({ ...p, venueCity: e.target.value }))}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label>Indirizzo</Label>
+                      <Input
+                        placeholder="Es. Via Filodrammatici 2"
+                        value={newEvent.venueAddress}
+                        onChange={e => setNewEvent(p => ({ ...p, venueAddress: e.target.value }))}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label>Immagine evento</Label>
+                      <div className="mt-1">
+                        <ImageUpload
+                          value={newEvent.imageUrl}
+                          onChange={url => setNewEvent(p => ({ ...p, imageUrl: url }))}
+                          label="Carica immagine evento"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 mt-6 justify-end">
+                    <Button variant="outline" onClick={() => setShowCreateForm(false)}>Annulla</Button>
+                    <Button onClick={handleCreateEvent} disabled={isCreating}>
+                      {isCreating ? "Creazione in corso..." : "Crea Evento"}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-3">* Dopo la creazione potrai modificare l'evento per aggiungere categorie biglietti personalizzate con prezzi e disponibilità.</p>
+                </CardContent>
+              </Card>
+            )}
+
             <Card>
-              <CardHeader>
-                <CardTitle>Tutti gli Eventi</CardTitle>
-                <CardDescription>
-                  Gestisci tutti gli eventi della piattaforma
-                </CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Tutti gli Eventi</CardTitle>
+                  <CardDescription>
+                    Gestisci tutti gli eventi della piattaforma
+                  </CardDescription>
+                </div>
+                <Button onClick={() => setShowCreateForm(v => !v)} className="gap-2">
+                  <PlusCircle className="h-4 w-4" />
+                  Crea Nuovo Evento
+                </Button>
               </CardHeader>
               <CardContent>
                 {eventsLoading ? (

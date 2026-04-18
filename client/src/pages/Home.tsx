@@ -8,9 +8,11 @@ import { trpc } from "@/lib/trpc";
 import { Calendar, MapPin, Music, Search, Ticket } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
+  const siteSettings = useSiteSettings();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
   const [selectedCity, setSelectedCity] = useState<string | undefined>();
@@ -30,14 +32,19 @@ export default function Home() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary/10 via-accent/5 to-background py-20">
+      <section
+        className="relative py-20"
+        style={{
+          background: `linear-gradient(135deg, ${siteSettings.colorHeroFrom} 0%, ${siteSettings.colorHeroTo} 100%)`,
+        }}
+      >
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 text-foreground">
-              Esperienze Culturali Indimenticabili
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 text-white drop-shadow-lg">
+              {siteSettings.heroTitle}
             </h1>
-            <p className="text-xl text-muted-foreground mb-8">
-              Scopri concerti di musica classica, opere liriche e spettacoli teatrali nella tua città
+            <p className="text-xl text-white/80 mb-8">
+              {siteSettings.heroSubtitle}
             </p>
             
             {/* Search Bar */}
