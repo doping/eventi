@@ -206,3 +206,14 @@
 - [x] Tabella siteSettings nel DB per configurazioni
 - [x] API per lettura/scrittura impostazioni sito (getAll, get, set, setBulk)
 - [x] Link Impostazioni Sito nella navbar per admin (desktop + mobile)
+
+## Sprint 4 - Upload Immagini, Nuovo Evento, Filtro Passati
+- [x] API upload immagini su S3 (endpoint /api/upload/image)
+- [x] Componente ImageUpload riutilizzabile con drag&drop e preview
+- [x] Pagina /events/new per creazione evento da zero
+- [x] Link "Crea Evento" nella navbar per admin/partner
+- [x] Sostituzione campo URL immagine con upload in EventEdit
+- [x] Sostituzione campo URL logo con upload in SiteSettings
+- [x] Filtro eventi passati dalla homepage (solo eventi futuri)
+- [x] Aggiornamento date eventi seed al futuro (2026)
+- [x] API pubblica filtra per data >= oggi

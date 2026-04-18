@@ -161,7 +161,12 @@ export async function getPublicEvents(filters?: {
   const db = await getDb();
   if (!db) return [];
 
-  let conditions = [eq(events.status, 'approved')];
+  const now = new Date();
+  // Only show events that have at least one future date (main date or additional dates)
+  let conditions = [
+    eq(events.status, 'approved'),
+    gte(events.eventDate, now),
+  ];
 
   if (filters?.category) {
     conditions.push(eq(events.category, filters.category as any));

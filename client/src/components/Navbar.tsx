@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { getLoginUrl } from "@/const";
-import { Menu, Music, Ticket, X, Settings } from "lucide-react";
+import { Menu, Music, Ticket, X, Settings, PlusCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 
@@ -64,11 +64,19 @@ export default function Navbar() {
                     </>
                   )}
                   {isPartner && (
-                    <Link href="/partner">
-                      <Button variant="ghost" size="sm">
-                        I Miei Eventi
-                      </Button>
-                    </Link>
+                    <>
+                      <Link href="/partner">
+                        <Button variant="ghost" size="sm">
+                          I Miei Eventi
+                        </Button>
+                      </Link>
+                      <Link href="/events/new">
+                        <Button size="sm" className="gap-1.5">
+                          <PlusCircle className="h-4 w-4" />
+                          Crea Evento
+                        </Button>
+                      </Link>
+                    </>
                   )}
                   <Link href="/my-tickets">
                     <Button variant="ghost" size="sm" className="gap-1.5">

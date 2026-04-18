@@ -13,13 +13,14 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
 import Navbar from "@/components/Navbar";
+import ImageUpload from "@/components/ImageUpload";
 
 // Default settings structure
 const DEFAULT_SETTINGS = [
   // Identità
   { key: "site_name", value: "EventiPro", type: "text" as const, label: "Nome del sito", description: "Il nome visualizzato nella navbar e nel titolo del browser" },
   { key: "site_tagline", value: "La tua piattaforma per eventi culturali", type: "text" as const, label: "Tagline", description: "Sottotitolo nella homepage" },
-  { key: "site_logo_url", value: "", type: "image" as const, label: "URL Logo", description: "URL dell'immagine del logo (es. https://...)" },
+  { key: "site_logo_url", value: "", type: "image" as const, label: "Logo del Sito", description: "Carica il logo che apparirà nella navbar e nel footer" },
   { key: "hero_title", value: "Scopri gli eventi più belli", type: "text" as const, label: "Titolo Hero", description: "Titolo principale della sezione hero in homepage" },
   { key: "hero_subtitle", value: "Musica classica, opera lirica e molto altro", type: "text" as const, label: "Sottotitolo Hero", description: "Testo sotto il titolo hero" },
   // Contatti
@@ -112,6 +113,18 @@ export default function SiteSettings() {
 
   const renderField = (setting: typeof DEFAULT_SETTINGS[0]) => {
     const val = values[setting.key] ?? "";
+    if (setting.type === "image") {
+      return (
+        <ImageUpload
+          value={val || null}
+          onChange={(url) => handleChange(setting.key, url)}
+          onClear={() => handleChange(setting.key, "")}
+          label=""
+          hint="JPEG, PNG, SVG fino a 10MB"
+          aspectRatio="auto"
+        />
+      );
+    }
     if (setting.type === "color") {
       return (
         <div className="flex items-center gap-3">

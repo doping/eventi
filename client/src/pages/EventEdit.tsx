@@ -18,6 +18,7 @@ import {
   Calendar,
   CalendarPlus,
 } from "lucide-react";
+import ImageUpload from "@/components/ImageUpload";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "wouter";
 import { toast } from "sonner";
@@ -417,26 +418,15 @@ export default function EventEdit() {
                   />
                 </div>
 
-                <div className="md:col-span-2 space-y-1">
-                  <Label htmlFor="imageUrl">URL Immagine</Label>
-                  <Input
-                    id="imageUrl"
+                <div className="md:col-span-2">
+                  <ImageUpload
                     value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="https://..."
+                    onChange={setImageUrl}
+                    onClear={() => setImageUrl("")}
+                    label="Immagine Evento"
+                    hint="JPEG, PNG, WebP fino a 10MB — consigliato 1200×675px"
+                    aspectRatio="landscape"
                   />
-                  {imageUrl && (
-                    <div className="mt-2 rounded-lg overflow-hidden h-32 w-full">
-                      <img
-                        src={imageUrl}
-                        alt="Anteprima"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
-                        }}
-                      />
-                    </div>
-                  )}
                 </div>
               </div>
             </CardContent>
