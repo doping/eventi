@@ -1,0 +1,1 @@
+ALTER TABLE `events` MODIFY COLUMN `venueAddress` text;

@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Plus, Trash2, ArrowLeft, Save, Loader2, CalendarPlus, X, MapPin } from "lucide-react";
 import { getLoginUrl } from "@/const";
 import { Badge } from "@/components/ui/badge";
+import { getErrorMessage } from "@/lib/errorMessages";
 
 interface TicketCategory {
   id: string;
@@ -97,7 +98,7 @@ export default function EventNew() {
       navigate(`/events/${event.id}/edit`);
     },
     onError: (err) => {
-      toast.error(err.message || "Errore durante la creazione dell'evento");
+      toast.error(getErrorMessage(err));
     },
   });
 
@@ -285,8 +286,7 @@ export default function EventNew() {
                 onChange={setImageUrl}
                 onClear={() => setImageUrl("")}
                 label="Immagine Evento"
-                hint="JPEG, PNG, WebP fino a 10MB — consigliato 1200×675px"
-                aspectRatio="landscape"
+                    aspectRatio="landscape"
               />
             </CardContent>
           </Card>

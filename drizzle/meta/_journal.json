@@ -36,6 +36,13 @@
       "when": 1777966474403,
       "tag": "0004_mushy_the_stranger",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1777969323462,
+      "tag": "0005_rare_loa",
+      "breakpoints": true
     }
   ]
 }

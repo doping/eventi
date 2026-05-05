@@ -88,14 +88,14 @@ export const appRouter = router({
     // Create event
     create: partnerProcedure
       .input(z.object({
-        title: z.string().min(1),
-        description: z.string().min(1),
-        category: z.enum(['classica', 'lirica', 'teatro', 'danza', 'altro']),
-        eventDate: z.string(),
+        title: z.string().min(1, 'Il titolo è obbligatorio'),
+        description: z.string().min(1, 'La descrizione è obbligatoria'),
+        category: z.enum(['classica', 'lirica', 'teatro', 'danza', 'altro'], { error: 'Seleziona una categoria valida' }),
+        eventDate: z.string().min(1, 'La data è obbligatoria'),
         eventEndDate: z.string().optional(),
-        venueName: z.string().min(1),
-        venueAddress: z.string().min(1),
-        venueCity: z.string().min(1),
+        venueName: z.string().min(1, 'Il nome del venue è obbligatorio'),
+        venueAddress: z.string().optional(),
+        venueCity: z.string().min(1, 'La città è obbligatoria'),
         venueLatitude: z.number().optional(),
         venueLongitude: z.number().optional(),
         imageUrl: z.string().optional(),

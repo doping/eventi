@@ -4,8 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Calendar, MapPin, Music, Minus, Plus, ShoppingCart, Ticket, ChevronLeft } from "lucide-react";
-import { useState } from "react";
+import { Calendar, MapPin, Music, Minus, Plus, ShoppingCart, Ticket, ChevronLeft, Clock, AlertTriangle } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useParams, useLocation } from "wouter";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
@@ -22,6 +22,57 @@ export default function EventDetail() {
 
   // Cart state: { categoryId: quantity }
   const [cart, setCart] = useState<Record<number, number>>({});
+
+  // ===== CART TIMER (5 minutes) =====
+  const CART_TIMEOUT_SECONDS = 5 * 60; // 5 minutes
+  const [cartTimer, setCartTimer] = useState<number | null>(null); // seconds remaining
+  const [cartExpired, setCartExpired] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const startTimer = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setCartTimer(CART_TIMEOUT_SECONDS);
+    setCartExpired(false);
+    timerRef.current = setInterval(() => {
+      setCartTimer(prev => {
+        if (prev === null || prev <= 1) {
+          clearInterval(timerRef.current!);
+          setCartExpired(true);
+          setCart({});
+          toast.error("Il tempo è scaduto! Il carrello è stato svuotato.");
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  const stopTimer = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setCartTimer(null);
+    setCartExpired(false);
+  }, []);
+
+  // Start timer when first item is added, stop when cart is empty
+  useEffect(() => {
+    const totalItems = Object.values(cart).reduce((s, q) => s + q, 0);
+    if (totalItems > 0 && cartTimer === null && !cartExpired) {
+      startTimer();
+    } else if (totalItems === 0 && cartTimer !== null) {
+      stopTimer();
+    }
+  }, [cart, cartTimer, cartExpired, startTimer, stopTimer]);
+
+  useEffect(() => {
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, []);
+
+  const formatTimer = (seconds: number) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
+  // ===== END CART TIMER =====
 
   const incrementQuantity = (categoryId: number, maxQuantity: number) => {
     setCart((prev) => {
@@ -308,6 +359,24 @@ export default function EventDetail() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Timer banner — shown when cart has items */}
+                {cartTimer !== null && (
+                  <div className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
+                    cartTimer <= 60
+                      ? 'bg-red-50 text-red-700 border border-red-200 animate-pulse'
+                      : cartTimer <= 120
+                      ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                      : 'bg-amber-50 text-amber-700 border border-amber-200'
+                  }`}>
+                    {cartTimer <= 60 ? <AlertTriangle className="h-4 w-4 shrink-0" /> : <Clock className="h-4 w-4 shrink-0" />}
+                    <span>
+                      {cartTimer <= 60
+                        ? `Sbrigati! Scade tra ${formatTimer(cartTimer)}`
+                        : `Completa l'acquisto entro ${formatTimer(cartTimer)}`}
+                    </span>
+                  </div>
+                )}
+
                 {totalItems === 0 ? (
                   <div className="text-center py-8 space-y-3">
                     <Ticket className="h-10 w-10 mx-auto text-muted-foreground/50" />
@@ -382,6 +451,21 @@ export default function EventDetail() {
 
       {/* ===== STICKY BOTTOM BAR — MOBILE ONLY ===== */}
       <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
+        {/* Timer strip above the bar */}
+        {cartTimer !== null && (
+          <div className={`flex items-center justify-center gap-2 px-4 py-1.5 text-xs font-semibold ${
+            cartTimer <= 60
+              ? 'bg-red-600 text-white animate-pulse'
+              : cartTimer <= 120
+              ? 'bg-orange-500 text-white'
+              : 'bg-amber-500 text-white'
+          }`}>
+            {cartTimer <= 60 ? <AlertTriangle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+            {cartTimer <= 60
+              ? `⚠️ Sbrigati! Scade tra ${formatTimer(cartTimer)}`
+              : `⏱ Completa l'acquisto entro ${formatTimer(cartTimer)}`}
+          </div>
+        )}
         <div className="bg-white/95 backdrop-blur-md border-t shadow-2xl px-4 py-3">
           {totalItems === 0 ? (
             /* No items selected — show "from price" CTA */

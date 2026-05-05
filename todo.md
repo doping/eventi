@@ -297,3 +297,12 @@
 - [x] Tipo 2: stesso evento, date diverse (usa tabella eventDates, aggiunge date automaticamente)
 - [x] UI per aggiungere date/location multiple nel form creazione evento
 - [x] Pagina /orders per storico ordini utente
+
+## Sprint 8 - Fix UX e Performance
+
+- [x] Errori form tradotti in italiano leggibile (no stringhe tecniche Zod)
+- [x] Campo "Indirizzo" reso opzionale nel backend (venueAddress)
+- [x] Timer carrello 5 minuti con conto alla rovescia e urgenza marketing
+- [x] Upload immagine con indicazioni formato/dimensioni visibili
+- [x] Ottimizzazione immagini: conversione WebP + thumbnail mobile al momento dell'upload
+- [x] Indicatore qualità immagine caricata (dimensioni, formato, peso)

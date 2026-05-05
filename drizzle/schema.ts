@@ -30,7 +30,7 @@ export const events = mysqlTable("events", {
   eventDate: timestamp("eventDate").notNull(),
   eventEndDate: timestamp("eventEndDate"),
   venueName: varchar("venueName", { length: 255 }).notNull(),
-  venueAddress: text("venueAddress").notNull(),
+  venueAddress: text("venueAddress"),
   venueCity: varchar("venueCity", { length: 100 }).notNull(),
   venueLatitude: decimal("venueLatitude", { precision: 10, scale: 7 }),
   venueLongitude: decimal("venueLongitude", { precision: 10, scale: 7 }),

@@ -27,6 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import ImageUpload from "@/components/ImageUpload";
 import { useState, useRef } from "react";
+import { getErrorMessage } from "@/lib/errorMessages";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 
@@ -80,7 +81,7 @@ export default function AdminDashboard() {
       utils.admin.allEvents.invalidate();
       utils.admin.stats.invalidate();
     },
-    onError: (err) => toast.error(err.message),
+    onError: (err) => toast.error(getErrorMessage(err)),
   });
 
   const rejectEvent = trpc.events.reject.useMutation({
@@ -90,7 +91,7 @@ export default function AdminDashboard() {
       utils.admin.allEvents.invalidate();
       utils.admin.stats.invalidate();
     },
-    onError: (err) => toast.error(err.message),
+    onError: (err) => toast.error(getErrorMessage(err)),
   });
 
   const validateTicket = trpc.tickets.validate.useMutation({
@@ -99,8 +100,8 @@ export default function AdminDashboard() {
       toast.success("Biglietto validato con successo!");
     },
     onError: (err) => {
-      setValidationResult({ success: false, error: err.message });
-      toast.error(err.message);
+      setValidationResult({ success: false, error: getErrorMessage(err) });
+      toast.error(getErrorMessage(err));
     },
   });
 
@@ -114,7 +115,7 @@ export default function AdminDashboard() {
       setIsCreating(false);
     },
     onError: (err) => {
-      toast.error(err.message);
+      toast.error(getErrorMessage(err));
       setIsCreating(false);
     },
   });
@@ -147,7 +148,7 @@ export default function AdminDashboard() {
       toast.success("Ruolo aggiornato con successo!");
       utils.admin.allUsers.invalidate();
     },
-    onError: (err) => toast.error(err.message),
+    onError: (err) => toast.error(getErrorMessage(err)),
   });
 
   const handleValidateTicket = () => {

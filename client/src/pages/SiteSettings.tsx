@@ -124,7 +124,6 @@ export default function SiteSettings() {
           onChange={(url) => handleChange(setting.key, url)}
           onClear={() => handleChange(setting.key, "")}
           label=""
-          hint="JPEG, PNG, SVG fino a 10MB"
           aspectRatio="auto"
         />
       );

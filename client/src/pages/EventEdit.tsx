@@ -77,7 +77,7 @@ export default function EventEdit() {
       setEventDate(new Date(e.eventDate).toISOString().slice(0, 16));
       setEventEndDate(e.eventEndDate ? new Date(e.eventEndDate).toISOString().slice(0, 16) : "");
       setVenueName(e.venueName);
-      setVenueAddress(e.venueAddress);
+      setVenueAddress(e.venueAddress || "");
       setVenueCity(e.venueCity);
       setImageUrl(e.imageUrl || "");
       setStatus(e.status);
@@ -424,7 +424,6 @@ export default function EventEdit() {
                     onChange={setImageUrl}
                     onClear={() => setImageUrl("")}
                     label="Immagine Evento"
-                    hint="JPEG, PNG, WebP fino a 10MB — consigliato 1200×675px"
                     aspectRatio="landscape"
                   />
                 </div>
