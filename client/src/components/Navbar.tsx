@@ -1,7 +1,14 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { getLoginUrl } from "@/const";
-import { Menu, Music, Ticket, X, Settings } from "lucide-react";
+import { Menu, Music, Ticket, X, Settings, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
@@ -76,13 +83,30 @@ export default function Navbar() {
                     </>
                   )}
 
-                  <Link href="/my-tickets">
-                    <Button variant="ghost" size="sm" className="gap-1.5">
-                      <Ticket className="h-4 w-4" />
-                      I Miei Biglietti
-                    </Button>
-                  </Link>
-                  <div className="ml-2 pl-2 border-l flex items-center gap-2">
+              <Link href="/my-tickets">
+                <Button variant="ghost" size="sm" className="gap-1.5">
+                  <Ticket className="h-4 w-4" />
+                  I Miei Biglietti
+                </Button>
+              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-1">
+                    Collabora <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild><Link href="/eventi-privati">🔒 Eventi Privati</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link href="/sei-una-location">📍 Sei una Location?</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link href="/sei-un-artista">🎵 Sei un Artista?</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link href="/sei-un-creator">🎬 Sei un Creator?</Link></DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild><Link href="/lavora-con-noi">💼 Lavora con Noi</Link></DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild><Link href="/termini-e-condizioni">📄 Termini & FAQ</Link></DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <div className="ml-2 pl-2 border-l flex items-center gap-2">
                     <span className="text-sm text-muted-foreground max-w-[140px] truncate">
                       {user?.name}
                     </span>
@@ -92,9 +116,28 @@ export default function Navbar() {
                   </div>
                 </>
               ) : (
+                <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="gap-1">
+                      Collabora <ChevronDown className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild><Link href="/eventi-privati">🔒 Eventi Privati</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link href="/sei-una-location">📍 Sei una Location?</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link href="/sei-un-artista">🎵 Sei un Artista?</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link href="/sei-un-creator">🎬 Sei un Creator?</Link></DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild><Link href="/lavora-con-noi">💼 Lavora con Noi</Link></DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild><Link href="/termini-e-condizioni">📄 Termini & FAQ</Link></DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <a href={getLoginUrl()}>
                   <Button size="sm">Accedi</Button>
                 </a>
+              </>
               )}
             </div>
 
@@ -179,6 +222,12 @@ export default function Navbar() {
                 </button>
               </Link>
 
+              <Link href="/orders">
+                <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
+                  🛍️ I Miei Ordini
+                </button>
+              </Link>
+
               {isPartner && (
                 <Link href="/partner">
                   <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
@@ -220,6 +269,36 @@ export default function Navbar() {
               <Link href="/">
                 <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
                   🎭 Esplora Eventi
+                </button>
+              </Link>
+              <Link href="/eventi-privati">
+                <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
+                  🔒 Eventi Privati
+                </button>
+              </Link>
+              <Link href="/sei-una-location">
+                <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
+                  📍 Sei una Location?
+                </button>
+              </Link>
+              <Link href="/sei-un-artista">
+                <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
+                  🎵 Sei un Artista?
+                </button>
+              </Link>
+              <Link href="/sei-un-creator">
+                <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
+                  🎬 Sei un Creator?
+                </button>
+              </Link>
+              <Link href="/lavora-con-noi">
+                <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
+                  💼 Lavora con Noi
+                </button>
+              </Link>
+              <Link href="/termini-e-condizioni">
+                <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
+                  📄 Termini & FAQ
                 </button>
               </Link>
               <div className="mt-4 pt-4 border-t">

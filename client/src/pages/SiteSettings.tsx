@@ -37,6 +37,10 @@ const DEFAULT_SETTINGS = [
   { key: "color_accent", value: "#f59e0b", type: "color" as const, label: "Colore accento", description: "Colore per badge e dettagli" },
   { key: "color_hero_from", value: "#1e1b4b", type: "color" as const, label: "Hero gradiente inizio", description: "Colore iniziale del gradiente hero" },
   { key: "color_hero_to", value: "#4c1d95", type: "color" as const, label: "Hero gradiente fine", description: "Colore finale del gradiente hero" },
+  // Email e notifiche
+  { key: "site_url", value: "https://eventitix-yemokzo8.manus.space", type: "text" as const, label: "URL del sito", description: "Indirizzo web completo del sito (usato nei link delle email)" },
+  { key: "notification_email", value: "", type: "text" as const, label: "Email notifiche ordini", description: "Ricevi una copia di ogni ordine completato a questo indirizzo" },
+  { key: "smtp_from_name", value: "EventiPro", type: "text" as const, label: "Nome mittente email", description: "Nome visualizzato come mittente nelle email agli acquirenti" },
   // Commissioni
   { key: "default_commission", value: "10", type: "text" as const, label: "Commissione default (%)", description: "Percentuale di commissione predefinita per i partner" },
   { key: "currency_symbol", value: "€", type: "text" as const, label: "Simbolo valuta", description: "Simbolo della valuta usata nel sito" },
@@ -162,6 +166,7 @@ export default function SiteSettings() {
   const colorSettings = DEFAULT_SETTINGS.filter(s => s.type === "color");
   const contactSettings = DEFAULT_SETTINGS.filter(s => s.key.startsWith("contact_") || s.key.startsWith("social_") || s.key === "footer_text" || s.key === "footer_about");
   const businessSettings = DEFAULT_SETTINGS.filter(s => ["default_commission","currency_symbol"].includes(s.key));
+  const emailSettings = DEFAULT_SETTINGS.filter(s => ["site_url","notification_email","smtp_from_name"].includes(s.key));
 
   if (isLoading) {
     return (
@@ -228,10 +233,14 @@ export default function SiteSettings() {
               <Phone className="w-4 h-4" />
               Contatti & Social
             </TabsTrigger>
-            <TabsTrigger value="business" className="gap-2">
-              <Settings className="w-4 h-4" />
-              Business
-            </TabsTrigger>
+          <TabsTrigger value="business" className="gap-2">
+            <Settings className="w-4 h-4" />
+            Business
+          </TabsTrigger>
+          <TabsTrigger value="email" className="gap-2">
+            <Mail className="w-4 h-4" />
+            Email
+          </TabsTrigger>
           </TabsList>
 
           {/* IDENTITY TAB */}
@@ -332,6 +341,44 @@ export default function SiteSettings() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {contactSettings.map(setting => (
+                  <div key={setting.key} className="space-y-2">
+                    <Label htmlFor={setting.key} className="font-medium">
+                      {setting.label}
+                    </Label>
+                    {renderField(setting)}
+                    <p className="text-xs text-muted-foreground">{setting.description}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* EMAIL TAB */}
+          <TabsContent value="email">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="w-5 h-5" />
+                  Impostazioni Email
+                </CardTitle>
+                <CardDescription>
+                  Configura le email automatiche inviate agli acquirenti dopo ogni ordine.
+                  Per attivare l'invio email, imposta le credenziali SMTP nelle variabili d'ambiente del server
+                  (<code className="text-xs bg-muted px-1 rounded">SMTP_HOST</code>, <code className="text-xs bg-muted px-1 rounded">SMTP_USER</code>, <code className="text-xs bg-muted px-1 rounded">SMTP_PASS</code>).
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm font-medium text-blue-800 mb-1">Come funziona</p>
+                  <p className="text-sm text-blue-700">
+                    Dopo ogni acquisto completato, il sistema invia automaticamente:
+                  </p>
+                  <ul className="text-sm text-blue-700 mt-2 space-y-1 list-disc list-inside">
+                    <li>Una email di conferma all'acquirente con i codici QR dei biglietti</li>
+                    <li>Una copia di notifica all'indirizzo configurato qui sotto</li>
+                  </ul>
+                </div>
+                {emailSettings.map(setting => (
                   <div key={setting.key} className="space-y-2">
                     <Label htmlFor={setting.key} className="font-medium">
                       {setting.label}

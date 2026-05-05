@@ -232,3 +232,68 @@
 - [x] Applicazione dinamica colori CSS via CSS variables (--color-primary ecc.)
 - [x] Logo dinamico nella navbar dal DB
 - [x] Nome sito dinamico nella navbar
+
+## Sprint 6 - Email Automatiche Post-Acquisto
+- [ ] Campo "Email notifiche admin" nelle siteSettings (chiave: notification_email)
+- [ ] Helper emailSender.ts con Nodemailer per invio email HTML
+- [ ] Template email HTML per acquirente: conferma ordine + lista biglietti + QR code
+- [ ] Template email HTML per admin: notifica nuovo ordine con dettagli
+- [ ] Invio email acquirente nella mutation confirm (dopo generazione biglietti)
+- [ ] Invio copia email all'indirizzo fisso configurato in siteSettings
+- [ ] Campo email notifiche nel pannello /site-settings (tab Contatti)
+- [ ] Gestione errori email (non blocca il flusso se email fallisce)
+
+## Sprint 7 - Nuove Funzionalità (Richiesta Utente)
+
+### UX Acquisto
+- [x] Bottone "Acquista da €XX" sticky in basso su mobile (stile PayPal, blu arrotondato)
+- [x] Bottone visibile sempre durante lo scroll della pagina evento
+
+### Filtri e Ricerca
+- [x] Filtro eventi per nome/titolo evento
+- [x] Filtro per data con calendario (date picker)
+- [x] Combinazione filtri data + categoria + ricerca testo
+
+### Dati Cliente al Checkout
+- [x] Campo Nome obbligatorio al checkout
+- [x] Campo Email obbligatorio al checkout
+- [x] Campo Paese obbligatorio al checkout (select con lista paesi)
+- [x] Salvataggio dati cliente nell'ordine
+- [x] Email conferma acquirente con voucher PDF allegato (o link download)
+- [x] Email notifica all'indirizzo aziendale configurabile
+
+### Landing Page Contatti (modificabili da admin)
+- [x] Pagina /eventi-privati con form contatto + testo modificabile da admin
+- [x] Pagina /sei-una-location con form contatto + testo modificabile da admin
+- [x] Pagina /sei-un-artista con form contatto + testo modificabile da admin
+- [x] Pagina /sei-un-creator con form contatto + testo modificabile da admin
+- [x] Pagina /lavora-con-noi con form contatto + testo modificabile da admin
+- [x] Tabella contactPages nel DB per testi modificabili
+- [x] Link a queste pagine nel footer del sito e nel menu Navbar (dropdown "Collabora")
+
+### Newsletter
+- [x] Form iscrizione newsletter (nome + email) nel footer del sito
+- [x] Tabella newsletter_subscribers nel DB
+- [x] API iscrizione newsletter (publicProcedure)
+
+### Recensioni
+- [x] Tabella reviews nel DB (userId, eventId, rating 1-5, testo, data)
+- [x] API creazione recensione
+- [x] API lista recensioni per evento (pubblica)
+- [x] Sezione recensioni nella pagina dettaglio evento
+- [x] Stelle interattive per votazione
+
+### Termini e Condizioni / FAQ
+- [x] Pagina /termini-e-condizioni con T&C e FAQ accordion
+- [x] Contenuto T&C e FAQ modificabile da admin via siteSettings
+- [x] Link nel footer e nel menu Navbar
+
+### Contatti Aziendali
+- [x] Link Termini & FAQ nel footer e navbar
+
+### Eventi Ricorrenti
+- [x] Opzione "tipo evento" nel form creazione evento (singolo / date multiple / location multiple)
+- [x] Tipo 1: stesso evento, location diversa (UI per aggiungere location aggiuntive)
+- [x] Tipo 2: stesso evento, date diverse (usa tabella eventDates, aggiunge date automaticamente)
+- [x] UI per aggiungere date/location multiple nel form creazione evento
+- [x] Pagina /orders per storico ordini utente

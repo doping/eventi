@@ -12,8 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Plus, Trash2, ArrowLeft, Save, Loader2 } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, Save, Loader2, CalendarPlus, X, MapPin } from "lucide-react";
 import { getLoginUrl } from "@/const";
+import { Badge } from "@/components/ui/badge";
 
 interface TicketCategory {
   id: string;
@@ -44,8 +45,54 @@ export default function EventNew() {
     { id: "1", name: "Platea", description: "", price: "25", quantity: "100" },
   ]);
 
+  // Recurring event state
+  type RecurringType = 'single' | 'multi-date' | 'multi-location';
+  const [recurringType, setRecurringType] = useState<RecurringType>('single');
+
+  interface ExtraDate {
+    id: string;
+    startDate: string;
+    endDate: string;
+    label: string;
+  }
+  interface ExtraLocation {
+    id: string;
+    venueName: string;
+    venueAddress: string;
+    venueCity: string;
+    startDate: string;
+    endDate: string;
+  }
+  const [extraDates, setExtraDates] = useState<ExtraDate[]>([]);
+  const [extraLocations, setExtraLocations] = useState<ExtraLocation[]>([]);
+
+  const addExtraDate = () => setExtraDates(prev => [...prev, { id: Date.now().toString(), startDate: '', endDate: '', label: '' }]);
+  const removeExtraDate = (id: string) => setExtraDates(prev => prev.filter(d => d.id !== id));
+  const updateExtraDate = (id: string, field: keyof ExtraDate, value: string) =>
+    setExtraDates(prev => prev.map(d => d.id === id ? { ...d, [field]: value } : d));
+
+  const addExtraLocation = () => setExtraLocations(prev => [...prev, { id: Date.now().toString(), venueName: '', venueAddress: '', venueCity: '', startDate: '', endDate: '' }]);
+  const removeExtraLocation = (id: string) => setExtraLocations(prev => prev.filter(l => l.id !== id));
+  const updateExtraLocation = (id: string, field: keyof ExtraLocation, value: string) =>
+    setExtraLocations(prev => prev.map(l => l.id === id ? { ...l, [field]: value } : l));
+
+  const addDateMutation = trpc.eventDates.add.useMutation();
+
   const createEvent = trpc.events.create.useMutation({
-    onSuccess: (event) => {
+    onSuccess: async (event) => {
+      // Add extra dates if recurring
+      if (recurringType === 'multi-date' && extraDates.length > 0) {
+        for (const d of extraDates) {
+          if (d.startDate) {
+            await addDateMutation.mutateAsync({
+              eventId: event.id,
+              startDate: d.startDate,
+              endDate: d.endDate || undefined,
+              label: d.label || undefined,
+            });
+          }
+        }
+      }
       toast.success("Evento creato con successo!");
       navigate(`/events/${event.id}/edit`);
     },
@@ -277,10 +324,122 @@ export default function EventNew() {
             </CardContent>
           </Card>
 
+          {/* Tipo Evento */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-serif">Tipo di Evento</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {([
+                  { value: 'single', label: 'Evento Singolo', desc: 'Un unico appuntamento', icon: '🎭' },
+                  { value: 'multi-date', label: 'Date Multiple', desc: 'Stesso evento, date diverse', icon: '📅' },
+                  { value: 'multi-location', label: 'Location Multiple', desc: 'Stesso evento, location diverse', icon: '📍' },
+                ] as const).map(opt => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setRecurringType(opt.value)}
+                    className={`p-4 rounded-lg border-2 text-left transition-all ${
+                      recurringType === opt.value
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:border-primary/40'
+                    }`}
+                  >
+                    <div className="text-2xl mb-1">{opt.icon}</div>
+                    <div className="font-semibold text-sm">{opt.label}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">{opt.desc}</div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Multi-date: add extra dates */}
+              {recurringType === 'multi-date' && (
+                <div className="space-y-3 pt-2">
+                  <p className="text-sm text-muted-foreground">
+                    La data principale è quella inserita sopra. Aggiungi qui le repliche:
+                  </p>
+                  {extraDates.map((d, i) => (
+                    <div key={d.id} className="p-3 border rounded-lg bg-muted/20 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline">Replica {i + 1}</Badge>
+                        <button type="button" onClick={() => removeExtraDate(d.id)} className="text-destructive hover:opacity-70">
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Data Inizio *</Label>
+                          <Input type="datetime-local" value={d.startDate} onChange={e => updateExtraDate(d.id, 'startDate', e.target.value)} />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Data Fine</Label>
+                          <Input type="datetime-local" value={d.endDate} onChange={e => updateExtraDate(d.id, 'endDate', e.target.value)} />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Etichetta</Label>
+                          <Input placeholder="es. Serata 2" value={d.label} onChange={e => updateExtraDate(d.id, 'label', e.target.value)} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <Button type="button" variant="outline" size="sm" onClick={addExtraDate} className="gap-2">
+                    <CalendarPlus className="h-4 w-4" />
+                    Aggiungi Replica
+                  </Button>
+                </div>
+              )}
+
+              {/* Multi-location: add extra locations */}
+              {recurringType === 'multi-location' && (
+                <div className="space-y-3 pt-2">
+                  <p className="text-sm text-muted-foreground">
+                    La location principale è quella inserita sotto. Aggiungi qui le location aggiuntive:
+                  </p>
+                  {extraLocations.map((l, i) => (
+                    <div key={l.id} className="p-3 border rounded-lg bg-muted/20 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline">Location {i + 1}</Badge>
+                        <button type="button" onClick={() => removeExtraLocation(l.id)} className="text-destructive hover:opacity-70">
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Nome Venue *</Label>
+                          <Input placeholder="es. Teatro Regio" value={l.venueName} onChange={e => updateExtraLocation(l.id, 'venueName', e.target.value)} />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Città *</Label>
+                          <Input placeholder="es. Torino" value={l.venueCity} onChange={e => updateExtraLocation(l.id, 'venueCity', e.target.value)} />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Indirizzo</Label>
+                          <Input placeholder="es. Piazza Castello, 215" value={l.venueAddress} onChange={e => updateExtraLocation(l.id, 'venueAddress', e.target.value)} />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Data</Label>
+                          <Input type="datetime-local" value={l.startDate} onChange={e => updateExtraLocation(l.id, 'startDate', e.target.value)} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <Button type="button" variant="outline" size="sm" onClick={addExtraLocation} className="gap-2">
+                    <MapPin className="h-4 w-4" />
+                    Aggiungi Location
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Nota: le location aggiuntive saranno visibili come note nella pagina di modifica evento.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Venue */}
           <Card>
             <CardHeader>
-              <CardTitle className="font-serif">Location</CardTitle>
+              <CardTitle className="font-serif">Location{recurringType === 'multi-location' ? ' Principale' : ''}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
               <div className="space-y-2">

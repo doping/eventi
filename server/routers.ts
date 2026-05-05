@@ -10,6 +10,7 @@ import { createCheckoutSession } from "./stripe";
 import { eurosToCents } from "../shared/products";
 import { generateMultipleTicketsPDF } from "./pdfGenerator";
 import { notifyOwner } from "./_core/notification";
+import { sendEmail, buildBuyerEmailHtml, buildAdminNotificationEmailHtml, SMTP_FROM } from "./emailSender";
 
 // ============ CUSTOM PROCEDURES ============
 
@@ -494,17 +495,92 @@ export const appRouter = router({
           }
         }
 
-        // Notify admin of new order
+        // Notify admin of new order + send emails
         try {
           const event = generatedTickets.length > 0 
             ? await db.getEventById(generatedTickets[0].eventId)
             : null;
+
+          // 1. Notifica Manus owner
           await notifyOwner({
             title: `🎟️ Nuovo ordine: ${order.orderNumber}`,
             content: `Nuovo acquisto completato!\n\nOrdine: ${order.orderNumber}\nAcquirente: ${ctx.user.name || ctx.user.email}\nBiglietti: ${generatedTickets.length}\nEvento: ${event?.title || 'N/A'}\nTotale: €${parseFloat(order.totalAmount).toFixed(2)}`,
           });
+
+          // 2. Recupera impostazioni sito per nome, url e email notifiche
+          const allSettings = await db.getAllSiteSettings();
+          const settingsMap = Object.fromEntries(allSettings.map((s: { settingKey: string; settingValue: string | null }) => [s.settingKey, s.settingValue]));
+          const siteName = settingsMap['site_name'] || 'EventiPro';
+          const siteUrl = settingsMap['site_url'] || 'https://eventitix-yemokzo8.manus.space';
+          const notificationEmail = settingsMap['notification_email'] || '';
+
+          const eventDate = event?.eventDate
+            ? new Date(event.eventDate).toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+            : 'Data da definire';
+          const eventVenue = event ? `${event.venueName}, ${event.venueCity}` : '';
+          const totalAmount = parseFloat(order.totalAmount).toFixed(2);
+
+          const ticketsForEmail = generatedTickets.map((t: any) => ({
+            qrCode: t.qrCode,
+            categoryName: t.ticketCategoryId?.toString() || 'Biglietto',
+            holderName: t.holderName || null,
+          }));
+
+          // Recupera nomi categorie per i biglietti
+          const categoryCache: Record<number, string> = {};
+          for (const t of generatedTickets as any[]) {
+            if (t.ticketCategoryId && !categoryCache[t.ticketCategoryId]) {
+              const cat = await db.getTicketCategoryById(t.ticketCategoryId);
+              categoryCache[t.ticketCategoryId] = cat?.name || 'Biglietto';
+            }
+          }
+          const ticketsWithNames = generatedTickets.map((t: any) => ({
+            qrCode: t.qrCode,
+            categoryName: categoryCache[t.ticketCategoryId] || 'Biglietto',
+            holderName: t.holderName || null,
+          }));
+
+          // 3. Email all'acquirente
+          if (ctx.user.email) {
+            const buyerHtml = buildBuyerEmailHtml({
+              buyerName: ctx.user.name || ctx.user.email,
+              orderNumber: order.orderNumber,
+              eventTitle: event?.title || 'Evento',
+              eventDate,
+              eventVenue,
+              tickets: ticketsWithNames,
+              totalAmount,
+              siteName,
+              siteUrl,
+            });
+            await sendEmail({
+              to: ctx.user.email,
+              subject: `✅ Conferma ordine ${order.orderNumber} - ${event?.title || 'Evento'}`,
+              html: buyerHtml,
+            });
+          }
+
+          // 4. Copia notifica all'indirizzo admin configurato
+          if (notificationEmail) {
+            const adminHtml = buildAdminNotificationEmailHtml({
+              orderNumber: order.orderNumber,
+              buyerName: ctx.user.name || ctx.user.email || 'N/A',
+              buyerEmail: ctx.user.email || 'N/A',
+              eventTitle: event?.title || 'Evento',
+              ticketCount: generatedTickets.length,
+              totalAmount,
+              siteName,
+              siteUrl,
+            });
+            await sendEmail({
+              to: notificationEmail,
+              subject: `🎟️ Nuovo ordine ${order.orderNumber} - ${event?.title || 'Evento'}`,
+              html: adminHtml,
+            });
+          }
+
         } catch (e) {
-          console.warn('[Notification] Failed to notify admin of new order:', e);
+          console.warn('[Notification/Email] Errore invio notifiche:', e);
         }
 
         return { success: true, orderId: order.id, tickets: generatedTickets };
@@ -829,6 +905,134 @@ export const appRouter = router({
         }
 
         return await db.getPartnerEarnings(partnerId);
+      }),
+  }),
+
+  // ============ REVIEWS ============
+  reviews: router({
+    // Get reviews for an event (public)
+    list: publicProcedure
+      .input(z.object({ eventId: z.number() }))
+      .query(async ({ input }) => {
+        const reviewList = await db.getReviewsByEvent(input.eventId);
+        const stats = await db.getEventAvgRating(input.eventId);
+        return { reviews: reviewList, avg: stats.avg, count: stats.count };
+      }),
+
+    // Create a review (only buyers)
+    create: protectedProcedure
+      .input(z.object({
+        eventId: z.number(),
+        rating: z.number().min(1).max(5),
+        comment: z.string().max(1000).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Check if user already reviewed this event
+        const existing = await db.getUserReviewForEvent(ctx.user.id, input.eventId);
+        if (existing) {
+          throw new TRPCError({ code: 'CONFLICT', message: 'Hai già lasciato una recensione per questo evento' });
+        }
+        return await db.createReview({
+          eventId: input.eventId,
+          userId: ctx.user.id,
+          rating: input.rating,
+          comment: input.comment || null,
+          authorName: ctx.user.name || null,
+        });
+      }),
+
+    // Check if current user already reviewed
+    myReview: protectedProcedure
+      .input(z.object({ eventId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        return await db.getUserReviewForEvent(ctx.user.id, input.eventId);
+      }),
+  }),
+
+  // ============ NEWSLETTER ============
+  newsletter: router({
+    // Subscribe (public)
+    subscribe: publicProcedure
+      .input(z.object({
+        email: z.string().email(),
+        name: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        await db.subscribeNewsletter(input.email, input.name);
+        return { success: true };
+      }),
+
+    // List all subscribers (admin only)
+    listSubscribers: adminProcedure.query(async () => {
+      return await db.getAllNewsletterSubscribers();
+    }),
+  }),
+
+  // ============ CONTACT PAGES ============
+  contactPages: router({
+    // Get a single contact page by slug (public)
+    get: publicProcedure
+      .input(z.object({ slug: z.string() }))
+      .query(async ({ input }) => {
+        return await db.getContactPage(input.slug);
+      }),
+
+    // Get all contact pages (admin)
+    listAll: adminProcedure.query(async () => {
+      return await db.getAllContactPages();
+    }),
+
+    // Upsert a contact page (admin)
+    upsert: adminProcedure
+      .input(z.object({
+        slug: z.string(),
+        title: z.string(),
+        subtitle: z.string().optional(),
+        bodyText: z.string().optional(),
+        ctaLabel: z.string().optional(),
+        recipientEmail: z.string().email().optional(),
+        isActive: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return await db.upsertContactPage({
+          slug: input.slug,
+          title: input.title,
+          subtitle: input.subtitle || null,
+          bodyText: input.bodyText || null,
+          ctaLabel: input.ctaLabel || null,
+          recipientEmail: input.recipientEmail || null,
+          isActive: input.isActive !== undefined ? input.isActive : true,
+        });
+      }),
+
+    // Submit a contact form (public)
+    submit: publicProcedure
+      .input(z.object({
+        pageSlug: z.string(),
+        senderName: z.string().min(2),
+        senderEmail: z.string().email(),
+        message: z.string().min(10),
+      }))
+      .mutation(async ({ input }) => {
+        const submission = await db.createContactSubmission(input);
+        // Notify owner
+        try {
+          const page = await db.getContactPage(input.pageSlug);
+          await notifyOwner({
+            title: `📩 Nuovo contatto: ${page?.title || input.pageSlug}`,
+            content: `Da: ${input.senderName} <${input.senderEmail}>\n\n${input.message}`,
+          });
+        } catch (e) {
+          console.warn('[ContactForm] Notifica fallita:', e);
+        }
+        return { success: true, id: submission.id };
+      }),
+
+    // List submissions (admin)
+    listSubmissions: adminProcedure
+      .input(z.object({ pageSlug: z.string().optional() }))
+      .query(async ({ input }) => {
+        return await db.getContactSubmissions(input.pageSlug);
       }),
   }),
 });

@@ -1,12 +1,15 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Calendar, MapPin, Music, Minus, Plus, ShoppingCart } from "lucide-react";
+import { Calendar, MapPin, Music, Minus, Plus, ShoppingCart, Ticket, ChevronLeft } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams, useLocation } from "wouter";
 import { toast } from "sonner";
+import Navbar from "@/components/Navbar";
+import ReviewsSection from "@/components/ReviewsSection";
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
@@ -61,6 +64,11 @@ export default function EventDetail() {
     return Object.values(cart).reduce((sum, qty) => sum + qty, 0);
   };
 
+  const getMinPrice = () => {
+    if (!data?.categories || data.categories.length === 0) return null;
+    return Math.min(...data.categories.map((c) => parseFloat(c.price)));
+  };
+
   const handleCheckout = async () => {
     if (!isAuthenticated) {
       toast.error("Devi effettuare l'accesso per acquistare biglietti");
@@ -84,12 +92,9 @@ export default function EventDetail() {
         origin: window.location.origin,
       });
 
-      // Open Stripe checkout in new tab
       if (result.checkoutUrl) {
         window.open(result.checkoutUrl, "_blank");
         toast.success("Reindirizzamento al checkout...");
-        
-        // Redirect to order confirmation page
         setTimeout(() => {
           setLocation(`/orders/${result.orderId}`);
         }, 1000);
@@ -102,14 +107,7 @@ export default function EventDetail() {
   if (isLoading) {
     return (
       <div className="min-h-screen">
-        <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-4">
-            <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
-              <Music className="h-7 w-7" />
-              <span>EventiPro</span>
-            </Link>
-          </div>
-        </nav>
+        <Navbar />
         <div className="container mx-auto px-4 py-12">
           <div className="animate-pulse space-y-6">
             <div className="h-96 bg-muted rounded-lg" />
@@ -124,14 +122,7 @@ export default function EventDetail() {
   if (!data?.event) {
     return (
       <div className="min-h-screen">
-        <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-4">
-            <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
-              <Music className="h-7 w-7" />
-              <span>EventiPro</span>
-            </Link>
-          </div>
-        </nav>
+        <Navbar />
         <div className="container mx-auto px-4 py-12 text-center">
           <h1 className="text-3xl font-bold mb-4">Evento non trovato</h1>
           <Link href="/">
@@ -146,28 +137,26 @@ export default function EventDetail() {
   const eventDate = new Date(event.eventDate);
   const totalPrice = getTotalPrice();
   const totalItems = getTotalItems();
+  const minPrice = getMinPrice();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      {/* Navigation */}
-      <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
-              <Music className="h-7 w-7" />
-              <span>EventiPro</span>
-            </Link>
-            <Link href="/">
-              <Button variant="ghost">← Torna al Catalogo</Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pb-24 lg:pb-0">
+      <Navbar />
+
+      {/* Back button */}
+      <div className="container mx-auto px-4 pt-4">
+        <Link href="/">
+          <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground hover:text-foreground">
+            <ChevronLeft className="h-4 w-4" />
+            Torna al Catalogo
+          </Button>
+        </Link>
+      </div>
 
       {/* Event Hero */}
-      <section className="relative">
+      <section className="relative mt-2">
         {event.imageUrl ? (
-          <div className="h-96 overflow-hidden relative">
+          <div className="h-80 md:h-96 overflow-hidden relative">
             <img
               src={event.imageUrl}
               alt={event.title}
@@ -176,24 +165,24 @@ export default function EventDetail() {
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
           </div>
         ) : (
-          <div className="h-96 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+          <div className="h-80 md:h-96 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
             <Music className="h-32 w-32 text-primary/40" />
           </div>
         )}
       </section>
 
       {/* Event Details */}
-      <section className="container mx-auto px-4 -mt-32 relative z-10">
+      <section className="container mx-auto px-4 -mt-24 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardHeader>
-                <div className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
-                  {event.category.charAt(0).toUpperCase() + event.category.slice(1)}
+                <div className="flex items-center gap-2 mb-3">
+                  <Badge className="capitalize">{event.category}</Badge>
                 </div>
-                <CardTitle className="text-4xl">{event.title}</CardTitle>
-                <CardDescription className="text-lg mt-4">
+                <CardTitle className="text-3xl md:text-4xl leading-tight">{event.title}</CardTitle>
+                <CardDescription className="text-base mt-4 leading-relaxed">
                   {event.description}
                 </CardDescription>
               </CardHeader>
@@ -205,7 +194,7 @@ export default function EventDetail() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <Calendar className="h-5 w-5 text-primary mt-0.5" />
+                  <Calendar className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                   <div>
                     <p className="font-semibold">Data e Ora</p>
                     <p className="text-muted-foreground">
@@ -225,7 +214,7 @@ export default function EventDetail() {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <MapPin className="h-5 w-5 text-primary mt-0.5" />
+                  <MapPin className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                   <div>
                     <p className="font-semibold">{event.venueName}</p>
                     <p className="text-muted-foreground">
@@ -247,59 +236,70 @@ export default function EventDetail() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {categories.map((category) => (
-                  <div
-                    key={category.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:border-primary transition-colors"
-                  >
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-lg">{category.name}</h4>
-                      {category.description && (
-                        <p className="text-sm text-muted-foreground">
-                          {category.description}
+                {categories.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-6">Nessuna categoria disponibile</p>
+                ) : (
+                  categories.map((category) => (
+                    <div
+                      key={category.id}
+                      className={`flex items-center justify-between p-4 border rounded-xl transition-all ${
+                        cart[category.id] ? "border-primary bg-primary/5 shadow-sm" : "hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="flex-1 min-w-0 mr-4">
+                        <h4 className="font-semibold text-lg">{category.name}</h4>
+                        {category.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-1">
+                            {category.description}
+                          </p>
+                        )}
+                        <p className="text-2xl font-bold text-primary mt-1">
+                          €{parseFloat(category.price).toFixed(2)}
                         </p>
-                      )}
-                      <p className="text-2xl font-bold text-primary mt-2">
-                        €{parseFloat(category.price).toFixed(2)}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {category.availableQuantity} biglietti disponibili
-                      </p>
-                    </div>
+                        <p className="text-xs text-muted-foreground">
+                          {category.availableQuantity > 0
+                            ? `${category.availableQuantity} disponibili`
+                            : "Esaurito"}
+                        </p>
+                      </div>
 
-                    <div className="flex items-center gap-3">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => decrementQuantity(category.id)}
-                        disabled={!cart[category.id]}
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                      <span className="text-xl font-semibold w-8 text-center">
-                        {cart[category.id] || 0}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() =>
-                          incrementQuantity(category.id, category.availableQuantity)
-                        }
-                        disabled={
-                          (cart[category.id] || 0) >= category.availableQuantity
-                        }
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="rounded-full h-9 w-9"
+                          onClick={() => decrementQuantity(category.id)}
+                          disabled={!cart[category.id]}
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                        <span className="text-xl font-bold w-8 text-center">
+                          {cart[category.id] || 0}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="rounded-full h-9 w-9"
+                          onClick={() => incrementQuantity(category.id, category.availableQuantity)}
+                          disabled={
+                            (cart[category.id] || 0) >= category.availableQuantity ||
+                            category.availableQuantity === 0
+                          }
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </CardContent>
             </Card>
+            {/* Reviews Section */}
+            <ReviewsSection eventId={eventId} />
           </div>
 
-          {/* Sidebar - Cart Summary */}
-          <div className="lg:col-span-1">
+          {/* Sidebar - Cart Summary (desktop only) */}
+          <div className="lg:col-span-1 hidden lg:block">
             <Card className="sticky top-24">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -309,9 +309,17 @@ export default function EventDetail() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {totalItems === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">
-                    Nessun biglietto selezionato
-                  </p>
+                  <div className="text-center py-8 space-y-3">
+                    <Ticket className="h-10 w-10 mx-auto text-muted-foreground/50" />
+                    <p className="text-muted-foreground text-sm">
+                      Nessun biglietto selezionato
+                    </p>
+                    {minPrice !== null && (
+                      <p className="text-xs text-muted-foreground">
+                        A partire da <span className="font-semibold text-primary">€{minPrice.toFixed(2)}</span>
+                      </p>
+                    )}
+                  </div>
                 ) : (
                   <>
                     <div className="space-y-2">
@@ -321,12 +329,9 @@ export default function EventDetail() {
                         );
                         if (!category) return null;
                         return (
-                          <div
-                            key={categoryId}
-                            className="flex justify-between text-sm"
-                          >
-                            <span>
-                              {quantity}x {category.name}
+                          <div key={categoryId} className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">
+                              {quantity}× {category.name}
                             </span>
                             <span className="font-semibold">
                               €{(parseFloat(category.price) * quantity).toFixed(2)}
@@ -347,19 +352,17 @@ export default function EventDetail() {
                     </div>
 
                     <Button
-                      className="w-full"
+                      className="w-full rounded-full font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-md"
                       size="lg"
                       onClick={handleCheckout}
                       disabled={createCheckout.isPending}
                     >
-                      {createCheckout.isPending
-                        ? "Elaborazione..."
-                        : "Procedi al Pagamento"}
+                      {createCheckout.isPending ? "Elaborazione..." : "Procedi al Pagamento"}
                     </Button>
 
                     {!isAuthenticated && (
                       <p className="text-xs text-center text-muted-foreground">
-                        Devi effettuare l'accesso per completare l'acquisto
+                        Accedi per completare l'acquisto
                       </p>
                     )}
                   </>
@@ -376,6 +379,45 @@ export default function EventDetail() {
           <p>&copy; 2026 EventiPro. Tutti i diritti riservati.</p>
         </div>
       </footer>
+
+      {/* ===== STICKY BOTTOM BAR — MOBILE ONLY ===== */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
+        <div className="bg-white/95 backdrop-blur-md border-t shadow-2xl px-4 py-3">
+          {totalItems === 0 ? (
+            /* No items selected — show "from price" CTA */
+            <Button
+              className="w-full rounded-full font-bold text-base bg-blue-600 hover:bg-blue-700 text-white shadow-lg h-14"
+              size="lg"
+              onClick={() => {
+                document.querySelector("[data-ticket-section]")?.scrollIntoView({ behavior: "smooth" });
+              }}
+            >
+              <Ticket className="h-5 w-5 mr-2" />
+              {minPrice !== null
+                ? `Acquista da €${minPrice.toFixed(2)}`
+                : "Acquista Biglietti"}
+            </Button>
+          ) : (
+            /* Items in cart — show total + checkout */
+            <div className="flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-muted-foreground">
+                  {totalItems} {totalItems === 1 ? "biglietto" : "biglietti"}
+                </p>
+                <p className="text-lg font-bold text-primary">€{totalPrice.toFixed(2)}</p>
+              </div>
+              <Button
+                className="flex-1 rounded-full font-bold text-base bg-blue-600 hover:bg-blue-700 text-white shadow-lg h-12"
+                size="lg"
+                onClick={handleCheckout}
+                disabled={createCheckout.isPending}
+              >
+                {createCheckout.isPending ? "..." : "Acquista ora"}
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

@@ -32,7 +32,19 @@ import {
   InsertEventDate,
   siteSettings,
   SiteSetting,
-  InsertSiteSetting
+  InsertSiteSetting,
+  reviews,
+  Review,
+  InsertReview,
+  newsletterSubscribers,
+  NewsletterSubscriber,
+  InsertNewsletterSubscriber,
+  contactPages,
+  ContactPage,
+  InsertContactPage,
+  contactSubmissions,
+  ContactSubmission,
+  InsertContactSubmission
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -757,4 +769,104 @@ export async function setSiteSetting(
     }
   });
   return await getSiteSetting(key);
+}
+
+// ============ REVIEWS ============
+
+export async function getReviewsByEvent(eventId: number): Promise<Review[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(reviews).where(eq(reviews.eventId, eventId)).orderBy(reviews.createdAt);
+}
+
+export async function getUserReviewForEvent(userId: number, eventId: number): Promise<Review | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const [review] = await db.select().from(reviews)
+    .where(and(eq(reviews.userId, userId), eq(reviews.eventId, eventId)))
+    .limit(1);
+  return review || null;
+}
+
+export async function createReview(data: InsertReview): Promise<Review> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  const [result] = await db.insert(reviews).values(data);
+  const [created] = await db.select().from(reviews).where(eq(reviews.id, (result as any).insertId)).limit(1);
+  return created;
+}
+
+export async function getEventAvgRating(eventId: number): Promise<{ avg: number; count: number }> {
+  const db = await getDb();
+  if (!db) return { avg: 0, count: 0 };
+  const [result] = await db.select({
+    avg: sql<string>`AVG(${reviews.rating})`,
+    count: sql<number>`COUNT(${reviews.id})`,
+  }).from(reviews).where(eq(reviews.eventId, eventId));
+  return { avg: parseFloat(result?.avg || '0'), count: Number(result?.count || 0) };
+}
+
+// ============ NEWSLETTER ============
+
+export async function subscribeNewsletter(email: string, name?: string): Promise<NewsletterSubscriber> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  await db.insert(newsletterSubscribers).values({ email, name: name || null, isActive: true })
+    .onDuplicateKeyUpdate({ set: { isActive: true, name: name || null } });
+  const [sub] = await db.select().from(newsletterSubscribers).where(eq(newsletterSubscribers.email, email)).limit(1);
+  return sub;
+}
+
+export async function getAllNewsletterSubscribers(): Promise<NewsletterSubscriber[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(newsletterSubscribers).where(eq(newsletterSubscribers.isActive, true)).orderBy(newsletterSubscribers.createdAt);
+}
+
+// ============ CONTACT PAGES ============
+
+export async function getContactPage(slug: string): Promise<ContactPage | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const [page] = await db.select().from(contactPages).where(eq(contactPages.slug, slug)).limit(1);
+  return page || null;
+}
+
+export async function getAllContactPages(): Promise<ContactPage[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(contactPages).orderBy(contactPages.slug);
+}
+
+export async function upsertContactPage(data: InsertContactPage): Promise<ContactPage> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  await db.insert(contactPages).values(data).onDuplicateKeyUpdate({
+    set: {
+      title: data.title,
+      subtitle: data.subtitle,
+      bodyText: data.bodyText,
+      ctaLabel: data.ctaLabel,
+      recipientEmail: data.recipientEmail,
+      isActive: data.isActive,
+    }
+  });
+  return (await getContactPage(data.slug))!;
+}
+
+export async function createContactSubmission(data: InsertContactSubmission): Promise<ContactSubmission> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  const [result] = await db.insert(contactSubmissions).values(data);
+  const [created] = await db.select().from(contactSubmissions).where(eq(contactSubmissions.id, (result as any).insertId)).limit(1);
+  return created;
+}
+
+export async function getContactSubmissions(pageSlug?: string): Promise<ContactSubmission[]> {
+  const db = await getDb();
+  if (!db) return [];
+  if (pageSlug) {
+    return await db.select().from(contactSubmissions).where(eq(contactSubmissions.pageSlug, pageSlug)).orderBy(contactSubmissions.createdAt);
+  }
+  return await db.select().from(contactSubmissions).orderBy(contactSubmissions.createdAt);
 }
