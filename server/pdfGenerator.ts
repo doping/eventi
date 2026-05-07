@@ -33,7 +33,7 @@ export async function generateTicketPDF(data: TicketPDFData): Promise<string> {
   // Add title
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(24);
-  doc.text('EventiPro', 105, 20, { align: 'center' });
+  doc.text('OperaMix', 105, 20, { align: 'center' });
   
   doc.setFontSize(12);
   doc.text('Biglietto Evento', 105, 30, { align: 'center' });
@@ -151,7 +151,7 @@ export async function generateMultipleTicketsPDF(ticketsData: TicketPDFData[]): 
     // Add title
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(24);
-    doc.text('EventiPro', 105, 20, { align: 'center' });
+    doc.text('OperaMix', 105, 20, { align: 'center' });
     
     doc.setFontSize(12);
     doc.text('Biglietto Evento', 105, 30, { align: 'center' });

@@ -10,15 +10,26 @@ import { Link, useParams, useLocation } from "wouter";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import ReviewsSection from "@/components/ReviewsSection";
+import GuestCheckoutModal, { type GuestInfo } from "@/components/GuestCheckoutModal";
+import { extractIdFromSlug } from "@/../../shared/slugUtils";
 
 export default function EventDetail() {
-  const { id } = useParams<{ id: string }>();
+  // Support both /events/:id and /eventi/:slug routes
+  const params = useParams<{ id?: string; slug?: string }>();
   const [, setLocation] = useLocation();
   const { isAuthenticated } = useAuth();
-  const eventId = parseInt(id || "0");
+
+  // Extract numeric ID from either the id param or the end of the slug
+  const eventId = params.id
+    ? parseInt(params.id, 10)
+    : params.slug
+    ? (extractIdFromSlug(params.slug) ?? 0)
+    : 0;
 
   const { data, isLoading } = trpc.events.getById.useQuery({ id: eventId });
   const createCheckout = trpc.orders.createCheckout.useMutation();
+  const createGuestCheckout = trpc.orders.createGuestCheckout.useMutation();
+  const [showGuestModal, setShowGuestModal] = useState(false);
 
   // Cart state: { categoryId: quantity }
   const [cart, setCart] = useState<Record<number, number>>({});
@@ -121,12 +132,6 @@ export default function EventDetail() {
   };
 
   const handleCheckout = async () => {
-    if (!isAuthenticated) {
-      toast.error("Devi effettuare l'accesso per acquistare biglietti");
-      window.location.href = getLoginUrl();
-      return;
-    }
-
     const items = Object.entries(cart).map(([categoryId, quantity]) => ({
       ticketCategoryId: parseInt(categoryId),
       quantity,
@@ -134,6 +139,12 @@ export default function EventDetail() {
 
     if (items.length === 0) {
       toast.error("Seleziona almeno un biglietto");
+      return;
+    }
+
+    if (!isAuthenticated) {
+      // Show guest checkout modal instead of forcing login
+      setShowGuestModal(true);
       return;
     }
 
@@ -145,10 +156,33 @@ export default function EventDetail() {
 
       if (result.checkoutUrl) {
         window.open(result.checkoutUrl, "_blank");
-        toast.success("Reindirizzamento al checkout...");
-        setTimeout(() => {
-          setLocation(`/orders/${result.orderId}`);
-        }, 1000);
+        toast.success("Reindirizzamento al checkout... Completa il pagamento nella nuova scheda.");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Errore durante la creazione dell'ordine");
+    }
+  };
+
+  const handleGuestCheckout = async (guestInfo: GuestInfo) => {
+    const items = Object.entries(cart).map(([categoryId, quantity]) => ({
+      ticketCategoryId: parseInt(categoryId),
+      quantity,
+    }));
+
+    try {
+      const result = await createGuestCheckout.mutateAsync({
+        items,
+        origin: window.location.origin,
+        guestFirstName: guestInfo.firstName,
+        guestLastName: guestInfo.lastName,
+        guestEmail: guestInfo.email,
+        guestCountry: guestInfo.country,
+      });
+
+      if (result.checkoutUrl) {
+        setShowGuestModal(false);
+        window.open(result.checkoutUrl, "_blank");
+        toast.success("Reindirizzamento al checkout... Completa il pagamento nella nuova scheda.");
       }
     } catch (error: any) {
       toast.error(error.message || "Errore durante la creazione dell'ordine");
@@ -191,6 +225,7 @@ export default function EventDetail() {
   const minPrice = getMinPrice();
 
   return (
+    <>
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pb-24 lg:pb-0">
       <Navbar />
 
@@ -445,7 +480,7 @@ export default function EventDetail() {
       {/* Footer */}
       <footer className="border-t bg-muted/30 py-8 mt-12">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>&copy; 2026 EventiPro. Tutti i diritti riservati.</p>
+          <p>&copy; 2026 OperaMix. Tutti i diritti riservati.</p>
         </div>
       </footer>
 
@@ -503,5 +538,15 @@ export default function EventDetail() {
         </div>
       </div>
     </div>
+
+    {/* Guest Checkout Modal */}
+    <GuestCheckoutModal
+      open={showGuestModal}
+      onClose={() => setShowGuestModal(false)}
+      onConfirm={handleGuestCheckout}
+      loading={createGuestCheckout.isPending}
+      returnPath={window.location.pathname}
+    />
+    </>
   );
 }

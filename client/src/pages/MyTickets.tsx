@@ -108,7 +108,7 @@ export default function MyTickets() {
           <div className="container mx-auto px-4 py-4">
             <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
               <Music className="h-7 w-7" />
-              <span>EventiPro</span>
+              <span>OperaMix</span>
             </Link>
           </div>
         </nav>
@@ -134,7 +134,7 @@ export default function MyTickets() {
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
               <Music className="h-7 w-7" />
-              <span>EventiPro</span>
+              <span>OperaMix</span>
             </Link>
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground">{user?.name}</span>
@@ -266,7 +266,7 @@ export default function MyTickets() {
       {/* Footer */}
       <footer className="border-t bg-muted/30 py-8 mt-12">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>&copy; 2026 EventiPro. Tutti i diritti riservati.</p>
+          <p>&copy; 2026 OperaMix. Tutti i diritti riservati.</p>
         </div>
       </footer>
     </div>

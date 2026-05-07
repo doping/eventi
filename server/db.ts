@@ -198,11 +198,17 @@ export async function getPublicEvents(filters?: {
   }
 
   if (filters?.dateFrom) {
-    conditions.push(gte(events.eventDate, filters.dateFrom));
+    // Start of the selected day (00:00:00)
+    const from = new Date(filters.dateFrom);
+    from.setHours(0, 0, 0, 0);
+    conditions.push(gte(events.eventDate, from));
   }
 
   if (filters?.dateTo) {
-    conditions.push(lte(events.eventDate, filters.dateTo));
+    // End of the selected day (23:59:59) so the final date is included
+    const to = new Date(filters.dateTo);
+    to.setHours(23, 59, 59, 999);
+    conditions.push(lte(events.eventDate, to));
   }
 
   return await db
@@ -869,4 +875,26 @@ export async function getContactSubmissions(pageSlug?: string): Promise<ContactS
     return await db.select().from(contactSubmissions).where(eq(contactSubmissions.pageSlug, pageSlug)).orderBy(contactSubmissions.createdAt);
   }
   return await db.select().from(contactSubmissions).orderBy(contactSubmissions.createdAt);
+}
+
+// ============ ERROR LOGS ============
+export async function getErrorLogs(): Promise<import('../drizzle/schema').ErrorLog[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const { errorLogs } = await import('../drizzle/schema');
+  return await db.select().from(errorLogs).orderBy(errorLogs.createdAt).limit(200);
+}
+
+export async function createErrorLog(type: string, message: string, details?: string): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  const { errorLogs } = await import('../drizzle/schema');
+  await db.insert(errorLogs).values({ type, message, details: details || null });
+}
+
+// ============ ALL TICKETS (for backup) ============
+export async function getAllTickets(): Promise<import('../drizzle/schema').Ticket[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(tickets).orderBy(tickets.createdAt);
 }

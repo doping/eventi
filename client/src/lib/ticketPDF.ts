@@ -223,7 +223,7 @@ async function renderTicketPage(doc: jsPDF, ticket: TicketData): Promise<void> {
   doc.setTextColor(212, 175, 55);
   doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
-  doc.text("EventiPro", 15, pageH - 9);
+  doc.text("OperaMix", 15, pageH - 9);
 
   doc.setTextColor(180, 180, 200);
   doc.setFont("helvetica", "normal");

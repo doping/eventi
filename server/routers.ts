@@ -8,6 +8,7 @@ import { nanoid } from "nanoid";
 import * as db from "./db";
 import { createCheckoutSession } from "./stripe";
 import { eurosToCents } from "../shared/products";
+import { generateUniqueEventSlug } from "../shared/slugUtils";
 import { generateMultipleTicketsPDF } from "./pdfGenerator";
 import { notifyOwner } from "./_core/notification";
 import { sendEmail, buildBuyerEmailHtml, buildAdminNotificationEmailHtml, SMTP_FROM } from "./emailSender";
@@ -127,6 +128,10 @@ export const appRouter = router({
           isPartnerEvent: isPartner,
         });
 
+        // Generate SEO slug and save it
+        const slug = generateUniqueEventSlug(input.title, input.venueCity, new Date(input.eventDate), event.id);
+        await db.updateEvent(event.id, { slug });
+
         // Create ticket categories
         for (const cat of input.ticketCategories) {
           await db.createTicketCategory({
@@ -139,7 +144,7 @@ export const appRouter = router({
           });
         }
 
-        return event;
+        return { ...event, slug };
       }),
 
     // Update event
@@ -408,6 +413,106 @@ export const appRouter = router({
         };
       }),
 
+    // Create guest checkout (no account required)
+    createGuestCheckout: publicProcedure
+      .input(z.object({
+        items: z.array(z.object({
+          ticketCategoryId: z.number(),
+          quantity: z.number().min(1),
+        })),
+        origin: z.string(),
+        guestFirstName: z.string().min(1, { message: 'Il nome è obbligatorio' }),
+        guestLastName: z.string().min(1, { message: 'Il cognome è obbligatorio' }),
+        guestEmail: z.string().email({ message: 'Email non valida' }),
+        guestCountry: z.string().min(1, { message: 'Il paese è obbligatorio' }),
+      }))
+      .mutation(async ({ input }) => {
+        let totalAmount = 0;
+        let commissionAmount = 0;
+        const lineItems = [];
+
+        for (const item of input.items) {
+          const category = await db.getTicketCategoryById(item.ticketCategoryId);
+          if (!category) {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Categoria biglietto non trovata' });
+          }
+          if (category.availableQuantity < item.quantity) {
+            throw new TRPCError({ code: 'BAD_REQUEST', message: `Biglietti insufficienti per ${category.name}` });
+          }
+
+          const price = parseFloat(category.price);
+          const itemTotal = price * item.quantity;
+          totalAmount += itemTotal;
+
+          const event = await db.getEventById(category.eventId);
+          if (event?.isPartnerEvent) {
+            const commission = await db.getCommissionForPartner(event.organizerId);
+            if (commission) {
+              commissionAmount += itemTotal * (parseFloat(commission.commissionPercentage) / 100);
+            }
+          }
+
+          lineItems.push({
+            name: `${event?.title} - ${category.name}`,
+            description: category.description || '',
+            priceInCents: eurosToCents(price),
+            quantity: item.quantity,
+            categoryId: category.id,
+            eventId: category.eventId,
+          });
+        }
+
+        // Use a placeholder guest user ID (0 = guest)
+        const GUEST_USER_ID = 0;
+        const orderNumber = `ORD-${nanoid(10)}`;
+        const order = await db.createOrder({
+          orderNumber,
+          userId: GUEST_USER_ID,
+          totalAmount: totalAmount.toString(),
+          commissionAmount: commissionAmount.toString(),
+          status: 'pending',
+          guestFirstName: input.guestFirstName,
+          guestLastName: input.guestLastName,
+          guestEmail: input.guestEmail,
+          guestCountry: input.guestCountry,
+        });
+
+        for (const item of input.items) {
+          const category = await db.getTicketCategoryById(item.ticketCategoryId);
+          if (category) {
+            await db.createOrderItem({
+              orderId: order.id,
+              ticketCategoryId: item.ticketCategoryId,
+              eventId: category.eventId,
+              quantity: item.quantity,
+              unitPrice: category.price,
+            });
+          }
+        }
+
+        const session = await createCheckoutSession({
+          userId: GUEST_USER_ID,
+          userEmail: input.guestEmail,
+          userName: `${input.guestFirstName} ${input.guestLastName}`,
+          orderNumber,
+          items: lineItems,
+          origin: input.origin,
+          metadata: {
+            order_id: order.id.toString(),
+            guest_email: input.guestEmail,
+            guest_name: `${input.guestFirstName} ${input.guestLastName}`,
+            guest_country: input.guestCountry,
+          },
+        });
+
+        return {
+          orderId: order.id,
+          orderNumber,
+          checkoutUrl: session.url,
+          sessionId: session.id,
+        };
+      }),
+
     // Get order by ID
     getById: protectedProcedure
       .input(z.object({ id: z.number() }))
@@ -510,7 +615,7 @@ export const appRouter = router({
           // 2. Recupera impostazioni sito per nome, url e email notifiche
           const allSettings = await db.getAllSiteSettings();
           const settingsMap = Object.fromEntries(allSettings.map((s: { settingKey: string; settingValue: string | null }) => [s.settingKey, s.settingValue]));
-          const siteName = settingsMap['site_name'] || 'EventiPro';
+          const siteName = settingsMap['site_name'] || 'OperaMix';
           const siteUrl = settingsMap['site_url'] || 'https://eventitix-yemokzo8.manus.space';
           const notificationEmail = settingsMap['notification_email'] || '';
 
@@ -760,6 +865,40 @@ export const appRouter = router({
         await db.updateUserRole(input.userId, input.role);
         return { success: true };
       }),
+
+    // Export full DB as JSON backup
+    exportDb: adminProcedure.query(async () => {
+      const [events, orders, users, newsletter, tickets] = await Promise.all([
+        db.getAllEvents(),
+        db.getAllOrders(),
+        db.getAllUsers(),
+        db.getAllNewsletterSubscribers(),
+        db.getAllTickets(),
+      ]);
+      const backup = {
+        exportedAt: new Date().toISOString(),
+        version: '1.0',
+        data: { events, orders, users, newsletterSubscribers: newsletter, tickets },
+      };
+      return { json: JSON.stringify(backup, null, 2) };
+    }),
+
+    // Get error logs
+    getErrorLogs: adminProcedure.query(async () => {
+      return await db.getErrorLogs();
+    }),
+
+    // Log an error (can be called from frontend ErrorBoundary)
+    logError: adminProcedure
+      .input(z.object({
+        type: z.string(),
+        message: z.string(),
+        details: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        await db.createErrorLog(input.type, input.message, input.details);
+        return { success: true };
+      }),
   }),
 
   // ============ EVENT DATES (multi-date support) ============
@@ -954,8 +1093,9 @@ export const appRouter = router({
     // Subscribe (public)
     subscribe: publicProcedure
       .input(z.object({
-        email: z.string().email(),
+        email: z.string().email({ message: 'Email non valida' }),
         name: z.string().optional(),
+        gdprConsent: z.boolean().optional(),
       }))
       .mutation(async ({ input }) => {
         await db.subscribeNewsletter(input.email, input.name);
@@ -965,6 +1105,19 @@ export const appRouter = router({
     // List all subscribers (admin only)
     listSubscribers: adminProcedure.query(async () => {
       return await db.getAllNewsletterSubscribers();
+    }),
+
+    // Export subscribers as CSV (admin only)
+    exportCsv: adminProcedure.query(async () => {
+      const subscribers = await db.getAllNewsletterSubscribers();
+      const header = 'Nome,Email,Data iscrizione';
+      const rows = subscribers.map((s) => {
+        const name = (s.name || '').replace(/,/g, ' ');
+        const email = s.email.replace(/,/g, ' ');
+        const date = new Date(s.createdAt).toLocaleDateString('it-IT');
+        return `${name},${email},${date}`;
+      });
+      return { csv: [header, ...rows].join('\n'), count: subscribers.length };
     }),
   }),
 

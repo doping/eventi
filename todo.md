@@ -306,3 +306,62 @@
 - [x] Upload immagine con indicazioni formato/dimensioni visibili
 - [x] Ottimizzazione immagini: conversione WebP + thumbnail mobile al momento dell'upload
 - [x] Indicatore qualità immagine caricata (dimensioni, formato, peso)
+
+## Sprint 9 - Branding, Bug Fix, Multilingua, Admin Avanzato
+
+### Branding OperaMix
+- [ ] Sostituire "EventiPro" con "OperaMix" in tutti i file frontend/backend
+- [ ] Aggiornare VITE_APP_TITLE a "OperaMix"
+- [ ] Aggiornare meta title/description nelle pagine HTML
+- [ ] Evitare flash "EVENTIPRO" durante caricamento (favicon, title tag)
+
+### Bug Critici Checkout
+- [ ] Fix bottone "Acquista" mobile: deve scrollare ai biglietti (anchor), non aprire checkout
+- [ ] Fix errori casuali "Procedi acquisto" (anche da admin/utente loggato)
+- [ ] Fix bug quantità biglietti: + e - non aggiungono più di 1 per categoria
+- [ ] Dopo login, tornare al carrello/evento precedente (non homepage)
+- [ ] Fix 404 su URL /orders/330001 dopo pagamento — gestire pagina thank you
+
+### Guest Checkout
+- [ ] Permettere acquisto senza account
+- [ ] Form ospite: nazione, nome, cognome, email, conferma email
+- [ ] Campo conferma email: bloccare copia-incolla (onPaste preventDefault)
+- [ ] Validazione email corrispondenti lato frontend e backend
+
+### Filtri Homepage
+- [ ] Fix filtro date: includere la data finale (es. 10 luglio incluso)
+- [ ] Calendario: aprire il mese della data già selezionata, altrimenti mese corrente
+
+### SEO Slug URL
+- [ ] Generare slug leggibile per ogni evento (nome-data-location)
+- [ ] Aggiungere colonna slug nella tabella events
+- [ ] Route /eventi/:slug invece di /eventi/:id
+- [ ] Redirect da vecchi URL /eventi/:id ai nuovi slug
+- [ ] Meta tags Open Graph per ogni evento
+
+### Newsletter GDPR
+- [x] Aggiungere checkbox consenso privacy nel form iscrizione newsletter
+- [x] Salvare timestamp consenso nel DB
+- [x] Pannello admin: lista iscritti newsletter con data iscrizione e consenso
+- [x] Export CSV iscritti newsletter dall'admin
+- [x] Aggiungere sezione GDPR/Privacy nelle FAQ
+
+### Admin Avanzato
+- [x] Pagina admin: log errori sito (tabella errorLogs nel DB)
+- [x] Sezione admin: gestione categorie eventi (crea/modifica/elimina)
+- [x] Sezione admin: modifica testi pagine contatto (eventi privati, location, artisti, ecc.)
+- [x] Sezione admin: modifica FAQ e T&C
+- [x] Export intero DB in formato JSON per backup
+
+### Multilingua
+- [x] Implementare i18n con react-i18next
+- [x] Lingue: Italiano (default), English, Español, Русский
+- [x] Selettore lingua nella navbar (bandierine + codice)
+- [x] Tradurre tutte le stringhe UI principali
+- [x] Rilevamento automatico lingua browser con fallback italiano
+
+### PayPal
+- [x] Verificato: PayPal Orders API v2 compatibile con Express/Node.js
+- [x] Documentato cosa serve per configurare PayPal
+- [ ] Integrazione PayPal (rimandato a sprint successivo)
+- [ ] Scelta metodo pagamento pre-checkout Stripe/PayPal (rimandato)

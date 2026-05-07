@@ -43,6 +43,27 @@
       "when": 1777969323462,
       "tag": "0005_rare_loa",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1778139190428,
+      "tag": "0006_great_guardian",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1778139408825,
+      "tag": "0007_spooky_tombstone",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1778139784664,
+      "tag": "0008_public_dracula",
+      "breakpoints": true
     }
   ]
 }

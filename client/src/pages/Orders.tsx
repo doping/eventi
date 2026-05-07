@@ -91,7 +91,7 @@ export default function Orders() {
 
       <footer className="border-t bg-muted/30 py-8 mt-12">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>&copy; 2026 EventiPro. Tutti i diritti riservati.</p>
+          <p>&copy; 2026 OperaMix. Tutti i diritti riservati.</p>
         </div>
       </footer>
     </div>

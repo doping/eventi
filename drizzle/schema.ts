@@ -35,6 +35,7 @@ export const events = mysqlTable("events", {
   venueLatitude: decimal("venueLatitude", { precision: 10, scale: 7 }),
   venueLongitude: decimal("venueLongitude", { precision: 10, scale: 7 }),
   imageUrl: text("imageUrl"),
+  slug: varchar("slug", { length: 300 }),
   status: mysqlEnum("status", ["draft", "pending", "approved", "rejected", "cancelled"]).default("draft").notNull(),
   organizerId: int("organizerId").notNull(), // references users.id
   isPartnerEvent: boolean("isPartnerEvent").default(false).notNull(),
@@ -82,6 +83,11 @@ export const orders = mysqlTable("orders", {
   status: mysqlEnum("status", ["pending", "completed", "failed", "refunded"]).default("pending").notNull(),
   stripeSessionId: varchar("stripeSessionId", { length: 255 }),
   stripePaymentIntentId: varchar("stripePaymentIntentId", { length: 255 }),
+  // Guest checkout fields (null for registered users)
+  guestFirstName: varchar("guestFirstName", { length: 100 }),
+  guestLastName: varchar("guestLastName", { length: 100 }),
+  guestEmail: varchar("guestEmail", { length: 320 }),
+  guestCountry: varchar("guestCountry", { length: 10 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
@@ -295,3 +301,16 @@ export const contactSubmissions = mysqlTable("contactSubmissions", {
 
 export type ContactSubmission = typeof contactSubmissions.$inferSelect;
 export type InsertContactSubmission = typeof contactSubmissions.$inferInsert;
+
+/**
+ * Error logs table for admin monitoring
+ */
+export const errorLogs = mysqlTable("errorLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  type: varchar("type", { length: 100 }).notNull(),
+  message: text("message").notNull(),
+  details: text("details"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type ErrorLog = typeof errorLogs.$inferSelect;
+export type InsertErrorLog = typeof errorLogs.$inferInsert;

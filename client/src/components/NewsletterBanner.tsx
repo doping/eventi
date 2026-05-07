@@ -2,12 +2,16 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Mail, CheckCircle } from "lucide-react";
+import { Link } from "wouter";
 
 export default function NewsletterBanner() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const [gdprConsent, setGdprConsent] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
 
   const subscribe = trpc.newsletter.subscribe.useMutation({
@@ -21,6 +25,10 @@ export default function NewsletterBanner() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
+    if (!gdprConsent) {
+      toast.error("Devi accettare il trattamento dei dati per iscriverti.");
+      return;
+    }
     await subscribe.mutateAsync({ email, name: name || undefined });
   };
 
@@ -43,25 +51,47 @@ export default function NewsletterBanner() {
             Sei iscritto! A presto.
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
-            <Input
-              type="text"
-              placeholder="Il tuo nome (opzionale)"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="sm:w-40 shrink-0"
-            />
-            <Input
-              type="email"
-              placeholder="La tua email *"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="flex-1"
-            />
-            <Button type="submit" disabled={subscribe.isPending} className="shrink-0">
-              {subscribe.isPending ? "..." : "Iscriviti"}
-            </Button>
+          <form onSubmit={handleSubmit} className="space-y-4 max-w-lg mx-auto">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Input
+                type="text"
+                placeholder="Il tuo nome (opzionale)"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="sm:w-44 shrink-0"
+              />
+              <Input
+                type="email"
+                placeholder="La tua email *"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="flex-1"
+              />
+              <Button type="submit" disabled={subscribe.isPending || !gdprConsent} className="shrink-0">
+                {subscribe.isPending ? "..." : "Iscriviti"}
+              </Button>
+            </div>
+
+            {/* GDPR consent checkbox */}
+            <div className="flex items-start gap-2 text-left">
+              <Checkbox
+                id="gdpr-newsletter"
+                checked={gdprConsent}
+                onCheckedChange={(v) => setGdprConsent(!!v)}
+                className="mt-0.5 shrink-0"
+              />
+              <Label htmlFor="gdpr-newsletter" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
+                Acconsento al trattamento dei miei dati personali (nome e indirizzo email) da parte di OperaMix
+                per l'invio della newsletter. Potrò revocare il consenso in qualsiasi momento scrivendo a{" "}
+                <a href="mailto:privacy@operamix.com" className="underline hover:text-foreground">privacy@operamix.com</a>.
+                Leggi la nostra{" "}
+                <Link href="/termini-e-condizioni" className="underline hover:text-foreground">
+                  Privacy Policy
+                </Link>.{" "}
+                <span className="text-destructive">*</span>
+              </Label>
+            </div>
           </form>
         )}
       </div>

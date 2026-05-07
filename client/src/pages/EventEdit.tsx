@@ -286,7 +286,7 @@ export default function EventEdit() {
               <Link href={user?.role === "admin" ? "/admin" : "/partner"} className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
                 <ArrowLeft className="h-5 w-5" />
                 <Music className="h-6 w-6" />
-                <span className="font-bold">EventiPro</span>
+                <span className="font-bold">OperaMix</span>
               </Link>
               <div className="h-6 w-px bg-border" />
               <span className="font-semibold text-muted-foreground">

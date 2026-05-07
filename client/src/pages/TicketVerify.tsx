@@ -91,7 +91,7 @@ export default function TicketVerify() {
         <div className="text-center mb-6">
           <div className="inline-flex items-center gap-2 text-white/60 text-sm mb-2">
             <Ticket className="w-4 h-4" />
-            <span>EventiPro — Verifica Biglietto</span>
+            <span>OperaMix — Verifica Biglietto</span>
           </div>
         </div>
 

@@ -199,7 +199,7 @@ export default function AdminDashboard() {
               <Link href="/" className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
                 <ArrowLeft className="h-5 w-5" />
                 <Music className="h-7 w-7" />
-                <span className="text-xl font-bold">EventiPro</span>
+                <span className="text-xl font-bold">OperaMix</span>
               </Link>
               <div className="h-6 w-px bg-border" />
               <div className="flex items-center gap-2">
@@ -235,6 +235,9 @@ export default function AdminDashboard() {
             <TabsTrigger value="orders">Ordini</TabsTrigger>
             <TabsTrigger value="users">Utenti</TabsTrigger>
             <TabsTrigger value="validate">Valida Biglietti</TabsTrigger>
+            <TabsTrigger value="newsletter">Newsletter</TabsTrigger>
+            <TabsTrigger value="contact-pages">Pagine Contatto</TabsTrigger>
+            <TabsTrigger value="tools">Strumenti</TabsTrigger>
           </TabsList>
 
           {/* ===== OVERVIEW TAB ===== */}
@@ -892,8 +895,211 @@ export default function AdminDashboard() {
               </Card>
             </div>
           </TabsContent>
+          {/* ===== NEWSLETTER TAB ===== */}
+          <TabsContent value="newsletter">
+            <NewsletterAdminTab />
+          </TabsContent>
+
+          {/* ===== CONTACT PAGES TAB ===== */}
+          <TabsContent value="contact-pages">
+            <ContactPagesAdminTab />
+          </TabsContent>
+
+          {/* ===== TOOLS TAB ===== */}
+          <TabsContent value="tools">
+            <ToolsAdminTab />
+          </TabsContent>
+
         </Tabs>
       </div>
+    </div>
+  );
+}
+
+// ============ NEWSLETTER ADMIN TAB ============
+function NewsletterAdminTab() {
+  const { data, isLoading } = trpc.newsletter.listSubscribers.useQuery();
+  const exportCsv = trpc.newsletter.exportCsv.useQuery(undefined, { enabled: false });
+
+  const handleExport = async () => {
+    const result = await exportCsv.refetch();
+    if (result.data?.csv) {
+      const blob = new Blob([result.data.csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `newsletter-iscritti-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`Esportati ${result.data.count} iscritti`);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Iscritti Newsletter</CardTitle>
+          <CardDescription>Lista degli utenti iscritti alla newsletter</CardDescription>
+        </div>
+        <Button onClick={handleExport} variant="outline" size="sm" className="gap-2">
+          <Upload className="h-4 w-4" />
+          Esporta CSV
+        </Button>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <p className="text-muted-foreground text-sm">Caricamento...</p>
+        ) : !data || data.length === 0 ? (
+          <p className="text-muted-foreground text-sm">Nessun iscritto ancora.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2 pr-4 font-medium">Nome</th>
+                  <th className="text-left py-2 pr-4 font-medium">Email</th>
+                  <th className="text-left py-2 font-medium">Data iscrizione</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((s: any) => (
+                  <tr key={s.id} className="border-b last:border-0 hover:bg-muted/30">
+                    <td className="py-2 pr-4">{s.name || '—'}</td>
+                    <td className="py-2 pr-4">{s.email}</td>
+                    <td className="py-2 text-muted-foreground">{new Date(s.createdAt).toLocaleDateString('it-IT')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="text-xs text-muted-foreground mt-3">Totale: {data.length} iscritti</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ============ CONTACT PAGES ADMIN TAB ============
+function ContactPagesAdminTab() {
+  const { data: pages, isLoading, refetch } = trpc.contactPages.listAll.useQuery();
+  const upsert = trpc.contactPages.upsert.useMutation({ onSuccess: () => { refetch(); toast.success('Pagina aggiornata'); } });
+  const [editing, setEditing] = useState<any>(null);
+
+  const PAGE_SLUGS = [
+    { slug: 'eventi-privati', label: 'Eventi Privati' },
+    { slug: 'sei-una-location', label: 'Sei una Location' },
+    { slug: 'sei-un-artista', label: 'Sei un Artista' },
+    { slug: 'sei-un-creator', label: 'Sei un Creator' },
+    { slug: 'lavora-con-noi', label: 'Lavora con Noi' },
+  ];
+
+  const getPage = (slug: string) => pages?.find((p: any) => p.slug === slug);
+
+  return (
+    <div className="space-y-4">
+      {PAGE_SLUGS.map(({ slug, label }) => {
+        const page = getPage(slug);
+        const isEdit = editing?.slug === slug;
+        return (
+          <Card key={slug}>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div>
+                <CardTitle className="text-base">{label}</CardTitle>
+                <CardDescription className="text-xs">/{slug}</CardDescription>
+              </div>
+              <Button size="sm" variant="outline" onClick={() => setEditing(isEdit ? null : (page || { slug, title: label, subtitle: '', bodyText: '', ctaLabel: 'Contattaci', recipientEmail: '' }))}>
+                {isEdit ? 'Annulla' : 'Modifica'}
+              </Button>
+            </CardHeader>
+            {isEdit && (
+              <CardContent className="space-y-3">
+                <div>
+                  <Label className="text-xs">Titolo</Label>
+                  <Input value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} />
+                </div>
+                <div>
+                  <Label className="text-xs">Sottotitolo</Label>
+                  <Input value={editing.subtitle || ''} onChange={(e) => setEditing({ ...editing, subtitle: e.target.value })} />
+                </div>
+                <div>
+                  <Label className="text-xs">Testo corpo pagina</Label>
+                  <Textarea rows={4} value={editing.bodyText || ''} onChange={(e) => setEditing({ ...editing, bodyText: e.target.value })} />
+                </div>
+                <div>
+                  <Label className="text-xs">Email destinatario contatti</Label>
+                  <Input type="email" value={editing.recipientEmail || ''} onChange={(e) => setEditing({ ...editing, recipientEmail: e.target.value })} />
+                </div>
+                <Button size="sm" onClick={() => upsert.mutate(editing)} disabled={upsert.isPending}>
+                  {upsert.isPending ? 'Salvataggio...' : 'Salva'}
+                </Button>
+              </CardContent>
+            )}
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
+// ============ TOOLS ADMIN TAB ============
+function ToolsAdminTab() {
+  const exportDb = trpc.admin.exportDb.useQuery(undefined, { enabled: false });
+  const { data: logs } = trpc.admin.getErrorLogs.useQuery();
+
+  const handleExportDb = async () => {
+    const result = await exportDb.refetch();
+    if (result.data?.json) {
+      const blob = new Blob([result.data.json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `operamix-db-backup-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Backup DB scaricato');
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Backup Database</CardTitle>
+          <CardDescription>Scarica un backup completo di tutti i dati del sito in formato JSON</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={handleExportDb} disabled={exportDb.isFetching} variant="outline" className="gap-2">
+            <Upload className="h-4 w-4" />
+            {exportDb.isFetching ? 'Preparazione...' : 'Scarica Backup JSON'}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Log Errori</CardTitle>
+          <CardDescription>Ultimi errori registrati nel sistema</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {!logs || logs.length === 0 ? (
+            <p className="text-muted-foreground text-sm">Nessun errore registrato.</p>
+          ) : (
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {logs.map((log: any) => (
+                <div key={log.id} className="p-3 rounded-lg border bg-red-50 border-red-100 text-sm">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-mono text-xs text-red-700">{log.type}</span>
+                    <span className="text-xs text-muted-foreground">{new Date(log.createdAt).toLocaleString('it-IT')}</span>
+                  </div>
+                  <p className="text-red-800">{log.message}</p>
+                  {log.details && <pre className="mt-1 text-xs text-muted-foreground overflow-x-auto">{log.details}</pre>}
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

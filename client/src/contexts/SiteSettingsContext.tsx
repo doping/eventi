@@ -23,7 +23,7 @@ interface SiteSettings {
 }
 
 const defaultSettings: SiteSettings = {
-  siteName: "EventiPro",
+  siteName: "OperaMix",
   siteTagline: "La tua piattaforma per eventi culturali",
   siteLogoUrl: "",
   heroTitle: "Esperienze Culturali Indimenticabili",
@@ -33,7 +33,7 @@ const defaultSettings: SiteSettings = {
   colorAccent: "#f59e0b",
   colorHeroFrom: "#1e1b4b",
   colorHeroTo: "#4c1d95",
-  footerText: "© 2025 EventiPro. Tutti i diritti riservati.",
+  footerText: "© 2025 OperaMix. Tutti i diritti riservati.",
   contactEmail: "",
   contactPhone: "",
   socialFacebook: "",

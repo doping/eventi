@@ -18,7 +18,7 @@ import ImageUpload from "@/components/ImageUpload";
 // Default settings structure
 const DEFAULT_SETTINGS = [
   // Identità
-  { key: "site_name", value: "EventiPro", type: "text" as const, label: "Nome del sito", description: "Il nome visualizzato nella navbar e nel titolo del browser" },
+  { key: "site_name", value: "OperaMix", type: "text" as const, label: "Nome del sito", description: "Il nome visualizzato nella navbar e nel titolo del browser" },
   { key: "site_tagline", value: "La tua piattaforma per eventi culturali", type: "text" as const, label: "Tagline", description: "Sottotitolo nella homepage" },
   { key: "site_logo_url", value: "", type: "image" as const, label: "Logo del Sito", description: "Carica il logo che apparirà nella navbar e nel footer" },
   { key: "hero_title", value: "Scopri gli eventi più belli", type: "text" as const, label: "Titolo Hero", description: "Titolo principale della sezione hero in homepage" },
@@ -40,12 +40,12 @@ const DEFAULT_SETTINGS = [
   // Email e notifiche
   { key: "site_url", value: "https://eventitix-yemokzo8.manus.space", type: "text" as const, label: "URL del sito", description: "Indirizzo web completo del sito (usato nei link delle email)" },
   { key: "notification_email", value: "", type: "text" as const, label: "Email notifiche ordini", description: "Ricevi una copia di ogni ordine completato a questo indirizzo" },
-  { key: "smtp_from_name", value: "EventiPro", type: "text" as const, label: "Nome mittente email", description: "Nome visualizzato come mittente nelle email agli acquirenti" },
+  { key: "smtp_from_name", value: "OperaMix", type: "text" as const, label: "Nome mittente email", description: "Nome visualizzato come mittente nelle email agli acquirenti" },
   // Commissioni
   { key: "default_commission", value: "10", type: "text" as const, label: "Commissione default (%)", description: "Percentuale di commissione predefinita per i partner" },
   { key: "currency_symbol", value: "€", type: "text" as const, label: "Simbolo valuta", description: "Simbolo della valuta usata nel sito" },
   // Footer
-  { key: "footer_text", value: "© 2025 EventiPro. Tutti i diritti riservati.", type: "text" as const, label: "Testo footer", description: "Testo del copyright nel footer" },
+  { key: "footer_text", value: "© 2025 OperaMix. Tutti i diritti riservati.", type: "text" as const, label: "Testo footer", description: "Testo del copyright nel footer" },
   { key: "footer_about", value: "", type: "text" as const, label: "Testo 'Chi siamo' footer", description: "Breve descrizione nel footer" },
 ];
 

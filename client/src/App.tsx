@@ -29,6 +29,8 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/events/:id"} component={EventDetail} />
+      {/* SEO-friendly slug route — /eventi/nome-evento-citta-data-id */}
+      <Route path={"/eventi/:slug"} component={EventDetail} />
       <Route path={"/my-tickets"} component={MyTickets} />
       <Route path={"/orders"} component={Orders} />
       <Route path={"/admin"} component={AdminDashboard} />

@@ -25,7 +25,7 @@ function getTransporter() {
   });
 }
 
-export const SMTP_FROM = process.env.SMTP_FROM || process.env.SMTP_USER || "noreply@eventipro.it";
+export const SMTP_FROM = process.env.SMTP_FROM || process.env.SMTP_USER || "noreply@operamix.it";
 
 // ============================================================
 // TEMPLATE EMAIL ACQUIRENTE
@@ -243,7 +243,7 @@ export async function sendEmail(params: {
 
   try {
     await transporter.sendMail({
-      from: `"${process.env.SMTP_FROM_NAME || "EventiPro"}" <${SMTP_FROM}>`,
+      from: `"${process.env.SMTP_FROM_NAME || "OperaMix"}" <${SMTP_FROM}>`,
       to: Array.isArray(params.to) ? params.to.join(", ") : params.to,
       subject: params.subject,
       html: params.html,

@@ -12,6 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -141,6 +142,11 @@ export default function Navbar() {
               )}
             </div>
 
+            {/* Language switcher (desktop) */}
+            <div className="hidden md:block">
+              <LanguageSwitcher />
+            </div>
+
             {/* Mobile hamburger */}
             <button
               className="md:hidden flex items-center justify-center w-10 h-10 rounded-lg hover:bg-muted transition-colors"
@@ -193,6 +199,11 @@ export default function Navbar() {
           >
             <X className="h-4 w-4" />
           </button>
+        </div>
+
+        {/* Language switcher (mobile) */}
+        <div className="px-4 py-2 border-b">
+          <LanguageSwitcher />
         </div>
 
         {/* Drawer content */}

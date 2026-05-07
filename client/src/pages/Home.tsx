@@ -147,6 +147,7 @@ export default function Home() {
                     setDateRange(range);
                     if (range?.from && range?.to) setCalendarOpen(false);
                   }}
+                  defaultMonth={dateRange?.from ?? new Date()}
                   numberOfMonths={2}
                   locale={it}
                   disabled={{ before: new Date() }}
@@ -219,7 +220,7 @@ export default function Home() {
           ) : events && events.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {events.map((event) => (
-                <Link key={event.id} href={`/events/${event.id}`} className="block h-full">
+                <Link key={event.id} href={(event as any).slug ? `/eventi/${(event as any).slug}` : `/events/${event.id}`} className="block h-full">
                   <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 h-full group cursor-pointer flex flex-col">
                     {event.imageUrl ? (
                       <div className="h-48 overflow-hidden shrink-0">
@@ -323,7 +324,7 @@ export default function Home() {
             </div>
           </div>
           <div className="border-t pt-6 text-center text-xs text-muted-foreground">
-            <p>&copy; 2026 EventiPro. Tutti i diritti riservati.</p>
+            <p>&copy; 2026 OperaMix. Tutti i diritti riservati.</p>
           </div>
         </div>
       </footer>
