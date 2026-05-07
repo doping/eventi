@@ -365,3 +365,27 @@
 - [x] Documentato cosa serve per configurare PayPal
 - [ ] Integrazione PayPal (rimandato a sprint successivo)
 - [ ] Scelta metodo pagamento pre-checkout Stripe/PayPal (rimandato)
+
+## Sprint 10 - SEO Slug Avanzato
+
+- [ ] Slug generato solo alla creazione evento (non si aggiorna se cambia il titolo)
+- [ ] Campo slug modificabile manualmente in EventEdit
+- [ ] Tabella slugRedirects nel DB per tracciare i vecchi slug
+- [ ] Redirect 301 server-side quando si visita un vecchio slug
+- [ ] Aggiornare tutti i link /events/:id → /eventi/:slug nel frontend
+- [ ] Generare slug retroattivi per eventi esistenti senza slug
+- [ ] Sitemap.xml dinamica con tutti gli eventi
+- [ ] robots.txt aggiornato con link alla sitemap
+
+## Sprint 10 - SEO Slug + Multilingua Fix (COMPLETATO)
+
+- [x] Slug generato una sola volta alla creazione evento (non si aggiorna se cambia il titolo)
+- [x] Campo slug modificabile manualmente in EventEdit
+- [x] Tabella slugRedirects nel DB per redirect 301 quando lo slug cambia
+- [x] Backend: salva redirect automaticamente quando admin cambia slug manualmente
+- [x] Route GET /sitemap.xml dinamica con tutti gli eventi pubblicati
+- [x] Route GET /robots.txt con link alla sitemap
+- [x] Endpoint /api/seo/check-redirect/:slug per controllo redirect lato frontend
+- [x] Fix multilingua: useTranslation integrato in Navbar e Home
+- [x] Tutte le stringhe principali UI tradotte in IT/EN/ES/RU
+- [x] Calendario date usa locale corretto in base alla lingua selezionata

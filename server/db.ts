@@ -163,6 +163,13 @@ export async function getEventById(id: number): Promise<Event | undefined> {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function getEventBySlug(slug: string): Promise<Event | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(events).where(eq(events.slug, slug)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
 export async function getPublicEvents(filters?: {
   category?: string;
   city?: string;
@@ -897,4 +904,29 @@ export async function getAllTickets(): Promise<import('../drizzle/schema').Ticke
   const db = await getDb();
   if (!db) return [];
   return await db.select().from(tickets).orderBy(tickets.createdAt);
+}
+
+// ============ SLUG REDIRECTS ============
+export async function createSlugRedirect(oldSlug: string, newSlug: string, eventId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  const { slugRedirects } = await import('../drizzle/schema');
+  // Upsert: if old slug already exists, update the newSlug target
+  await db.insert(slugRedirects).values({ oldSlug, newSlug, eventId })
+    .onDuplicateKeyUpdate({ set: { newSlug, eventId } });
+}
+
+export async function getSlugRedirect(oldSlug: string): Promise<import('../drizzle/schema').SlugRedirect | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const { slugRedirects } = await import('../drizzle/schema');
+  const [redirect] = await db.select().from(slugRedirects).where(eq(slugRedirects.oldSlug, oldSlug)).limit(1);
+  return redirect || null;
+}
+
+export async function getAllSlugRedirects(): Promise<import('../drizzle/schema').SlugRedirect[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const { slugRedirects } = await import('../drizzle/schema');
+  return await db.select().from(slugRedirects).orderBy(slugRedirects.createdAt);
 }

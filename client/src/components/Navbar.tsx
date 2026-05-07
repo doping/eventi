@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useTranslation } from "react-i18next";
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -39,6 +40,7 @@ export default function Navbar() {
   const isAdmin = user?.role === "admin";
   const isPartner = user?.role === "partner" || user?.role === "admin";
   const siteSettings = useSiteSettings();
+  const { t } = useTranslation();
 
   return (
     <>
@@ -72,13 +74,13 @@ export default function Navbar() {
                     <>
                       <Link href="/admin">
                         <Button variant="ghost" size="sm">
-                          Dashboard Admin
-                        </Button>
+          {t('nav.admin')}
+                      </Button>
                       </Link>
                       <Link href="/site-settings">
                         <Button variant="ghost" size="sm" className="gap-1.5">
                           <Settings className="h-4 w-4" />
-                          Impostazioni
+                          {t('nav.admin')}
                         </Button>
                       </Link>
                     </>
@@ -87,24 +89,24 @@ export default function Navbar() {
               <Link href="/my-tickets">
                 <Button variant="ghost" size="sm" className="gap-1.5">
                   <Ticket className="h-4 w-4" />
-                  I Miei Biglietti
+                  {t('nav.myTickets')}
                 </Button>
               </Link>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="gap-1">
-                    Collabora <ChevronDown className="h-3 w-3" />
+                    {t('nav.collaborate')} <ChevronDown className="h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild><Link href="/eventi-privati">🔒 Eventi Privati</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild><Link href="/sei-una-location">📍 Sei una Location?</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild><Link href="/sei-un-artista">🎵 Sei un Artista?</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild><Link href="/sei-un-creator">🎬 Sei un Creator?</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link href="/eventi-privati">🔒 {t('nav.privateEvents')}</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link href="/sei-una-location">📍 {t('nav.location')}</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link href="/sei-un-artista">🎵 {t('nav.artist')}</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link href="/sei-un-creator">🎬 {t('nav.creator')}</Link></DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild><Link href="/lavora-con-noi">💼 Lavora con Noi</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link href="/lavora-con-noi">💼 {t('nav.workWithUs')}</Link></DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild><Link href="/termini-e-condizioni">📄 Termini & FAQ</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link href="/termini-e-condizioni">📄 {t('nav.terms')}</Link></DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
               <div className="ml-2 pl-2 border-l flex items-center gap-2">
@@ -112,7 +114,7 @@ export default function Navbar() {
                       {user?.name}
                     </span>
                     <Button variant="outline" size="sm" onClick={() => logout()}>
-                      Esci
+                      {t('nav.logout')}
                     </Button>
                   </div>
                 </>
@@ -121,22 +123,22 @@ export default function Navbar() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="gap-1">
-                      Collabora <ChevronDown className="h-3 w-3" />
+                      {t('nav.collaborate')} <ChevronDown className="h-3 w-3" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild><Link href="/eventi-privati">🔒 Eventi Privati</Link></DropdownMenuItem>
-                    <DropdownMenuItem asChild><Link href="/sei-una-location">📍 Sei una Location?</Link></DropdownMenuItem>
-                    <DropdownMenuItem asChild><Link href="/sei-un-artista">🎵 Sei un Artista?</Link></DropdownMenuItem>
-                    <DropdownMenuItem asChild><Link href="/sei-un-creator">🎬 Sei un Creator?</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link href="/eventi-privati">🔒 {t('nav.privateEvents')}</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link href="/sei-una-location">📍 {t('nav.location')}</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link href="/sei-un-artista">🎵 {t('nav.artist')}</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link href="/sei-un-creator">🎬 {t('nav.creator')}</Link></DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild><Link href="/lavora-con-noi">💼 Lavora con Noi</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link href="/lavora-con-noi">💼 {t('nav.workWithUs')}</Link></DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild><Link href="/termini-e-condizioni">📄 Termini & FAQ</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link href="/termini-e-condizioni">📄 {t('nav.terms')}</Link></DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <a href={getLoginUrl()}>
-                  <Button size="sm">Accedi</Button>
+                  <Button size="sm">{t('nav.login')}</Button>
                 </a>
               </>
               )}
@@ -213,7 +215,7 @@ export default function Navbar() {
               {/* User info */}
               <div className="px-3 py-3 mb-2 bg-muted/50 rounded-lg">
                 <p className="text-xs text-muted-foreground uppercase tracking-wide mb-0.5">
-                  Accesso come
+                  {t('nav.login')}
                 </p>
                 <p className="font-medium text-sm truncate">{user?.name}</p>
                 {user?.email && (
@@ -223,19 +225,19 @@ export default function Navbar() {
 
               <Link href="/">
                 <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
-                  🎭 Esplora Eventi
+                  🎭 {t('nav.home')}
                 </button>
               </Link>
 
               <Link href="/my-tickets">
                 <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
-                  🎫 I Miei Biglietti
+                  🎫 {t('nav.myTickets')}
                 </button>
               </Link>
 
               <Link href="/orders">
                 <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
-                  🛍️ I Miei Ordini
+                  🛍️ {t('nav.orders')}
                 </button>
               </Link>
 
@@ -251,12 +253,12 @@ export default function Navbar() {
                 <>
                   <Link href="/admin">
                     <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
-                      ⚙️ Dashboard Admin
+                      ⚙️ {t('nav.admin')}
                     </button>
                   </Link>
                   <Link href="/site-settings">
                     <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
-                      🎨 Impostazioni Sito
+                      🎨 {t('nav.admin')}
                     </button>
                   </Link>
                 </>
@@ -271,7 +273,7 @@ export default function Navbar() {
                     logout();
                   }}
                 >
-                  Esci dall'account
+                  {t('nav.logout')}
                 </Button>
               </div>
             </>
@@ -279,42 +281,42 @@ export default function Navbar() {
             <>
               <Link href="/">
                 <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
-                  🎭 Esplora Eventi
+                  🎭 {t('nav.home')}
                 </button>
               </Link>
               <Link href="/eventi-privati">
                 <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
-                  🔒 Eventi Privati
+                  🔒 {t('nav.privateEvents')}
                 </button>
               </Link>
               <Link href="/sei-una-location">
                 <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
-                  📍 Sei una Location?
+                  📍 {t('nav.location')}
                 </button>
               </Link>
               <Link href="/sei-un-artista">
                 <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
-                  🎵 Sei un Artista?
+                  🎵 {t('nav.artist')}
                 </button>
               </Link>
               <Link href="/sei-un-creator">
                 <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
-                  🎬 Sei un Creator?
+                  🎬 {t('nav.creator')}
                 </button>
               </Link>
               <Link href="/lavora-con-noi">
                 <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
-                  💼 Lavora con Noi
+                  💼 {t('nav.workWithUs')}
                 </button>
               </Link>
               <Link href="/termini-e-condizioni">
                 <button className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
-                  📄 Termini & FAQ
+                  📄 {t('nav.terms')}
                 </button>
               </Link>
               <div className="mt-4 pt-4 border-t">
                 <a href={getLoginUrl()} className="block">
-                  <Button className="w-full">Accedi</Button>
+                  <Button className="w-full">{t('nav.login')}</Button>
                 </a>
               </div>
             </>

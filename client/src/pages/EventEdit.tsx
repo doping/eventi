@@ -51,6 +51,7 @@ export default function EventEdit() {
   const [venueCity, setVenueCity] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [status, setStatus] = useState<string>("");
+  const [slug, setSlug] = useState("");
 
   // Categories state
   const [categories, setCategories] = useState<CategoryForm[]>([]);
@@ -81,6 +82,7 @@ export default function EventEdit() {
       setVenueCity(e.venueCity);
       setImageUrl(e.imageUrl || "");
       setStatus(e.status);
+      setSlug(e.slug || "");
     }
     if (data?.categories) {
       setCategories(
@@ -188,6 +190,7 @@ export default function EventEdit() {
         venueCity,
         imageUrl: imageUrl || undefined,
         status: status as any,
+        slug: slug || undefined,
       });
 
       // 2. Delete removed categories
@@ -426,6 +429,29 @@ export default function EventEdit() {
                     label="Immagine Evento"
                     aspectRatio="landscape"
                   />
+                </div>
+
+                {/* SEO Slug field */}
+                <div className="md:col-span-2 space-y-1">
+                  <Label htmlFor="slug" className="flex items-center gap-2">
+                    URL SEO
+                    <span className="text-xs text-muted-foreground font-normal">(modificabile manualmente — cambiarlo crea un redirect automatico dal vecchio URL)</span>
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">/eventi/</span>
+                    <Input
+                      id="slug"
+                      value={slug}
+                      onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-'))}
+                      placeholder="nome-evento-citta-data"
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                  {slug && (
+                    <p className="text-xs text-muted-foreground">
+                      URL completo: <code className="bg-muted px-1 rounded">/eventi/{slug}</code>
+                    </p>
+                  )}
                 </div>
               </div>
             </CardContent>

@@ -163,6 +163,7 @@ export const appRouter = router({
         venueLongitude: z.number().optional(),
         imageUrl: z.string().optional(),
         status: z.enum(['draft', 'pending', 'approved', 'rejected', 'cancelled']).optional(),
+        slug: z.string().min(1).max(300).regex(/^[a-z0-9-]+$/, { message: 'Lo slug può contenere solo lettere minuscole, numeri e trattini' }).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const event = await db.getEventById(input.id);
@@ -188,6 +189,20 @@ export const appRouter = router({
         if (input.venueLongitude !== undefined) updates.venueLongitude = input.venueLongitude.toString();
         if (input.imageUrl !== undefined) updates.imageUrl = input.imageUrl;
         if (input.status) updates.status = input.status;
+
+        // Handle manual slug change: save redirect from old slug to new slug
+        if (input.slug && input.slug !== event.slug) {
+          // Check slug uniqueness
+          const existing = await db.getEventBySlug(input.slug);
+          if (existing && existing.id !== input.id) {
+            throw new TRPCError({ code: 'CONFLICT', message: 'Questo slug è già utilizzato da un altro evento' });
+          }
+          // Save redirect from old slug to new slug (if old slug existed)
+          if (event.slug) {
+            await db.createSlugRedirect(event.slug, input.slug, input.id);
+          }
+          updates.slug = input.slug;
+        }
 
         return await db.updateEvent(input.id, updates);
       }),

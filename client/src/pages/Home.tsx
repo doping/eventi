@@ -16,10 +16,12 @@ import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
 import NewsletterBanner from "@/components/NewsletterBanner";
+import { useTranslation } from "react-i18next";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const siteSettings = useSiteSettings();
+  const { t, i18n } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
   const [selectedCity, setSelectedCity] = useState<string | undefined>();
@@ -49,9 +51,10 @@ export default function Home() {
   };
 
   const formatDateRange = () => {
-    if (!dateRange?.from) return "Seleziona date";
-    if (!dateRange.to) return format(dateRange.from, "d MMM yyyy", { locale: it });
-    return `${format(dateRange.from, "d MMM", { locale: it })} – ${format(dateRange.to, "d MMM yyyy", { locale: it })}`;
+    if (!dateRange?.from) return t('home.selectDateRange');
+    const locale = i18n.language === 'it' ? it : undefined;
+    if (!dateRange.to) return format(dateRange.from, "d MMM yyyy", locale ? { locale } : undefined);
+    return `${format(dateRange.from, "d MMM", locale ? { locale } : undefined)} – ${format(dateRange.to, "d MMM yyyy", locale ? { locale } : undefined)}`;
   };
 
   return (
@@ -80,7 +83,7 @@ export default function Home() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="Cerca eventi, artisti, luoghi..."
+                  placeholder={t('home.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 h-12 bg-white/95"
@@ -98,15 +101,15 @@ export default function Home() {
             {/* Category filter */}
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Categoria" />
+                <SelectValue placeholder={t('home.filterCategory')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tutte le categorie</SelectItem>
-                <SelectItem value="classica">Musica Classica</SelectItem>
-                <SelectItem value="lirica">Opera Lirica</SelectItem>
-                <SelectItem value="teatro">Teatro</SelectItem>
-                <SelectItem value="danza">Danza</SelectItem>
-                <SelectItem value="altro">Altro</SelectItem>
+                <SelectItem value="all">{t('home.allCategories')}</SelectItem>
+                <SelectItem value="classica">{t('categories.classica')}</SelectItem>
+                <SelectItem value="lirica">{t('categories.lirica')}</SelectItem>
+                <SelectItem value="teatro">{t('categories.teatro')}</SelectItem>
+                <SelectItem value="danza">{t('categories.danza')}</SelectItem>
+                <SelectItem value="altro">{t('categories.altro')}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -155,10 +158,10 @@ export default function Home() {
                 />
                 <div className="flex justify-end p-2 border-t gap-2">
                   <Button variant="ghost" size="sm" onClick={() => { setDateRange(undefined); setCalendarOpen(false); }}>
-                    Cancella
+                    {t('home.clearDates')}
                   </Button>
                   <Button size="sm" onClick={() => setCalendarOpen(false)}>
-                    Applica
+                    {t('common.confirm')}
                   </Button>
                 </div>
               </PopoverContent>
@@ -186,7 +189,7 @@ export default function Home() {
                   </Badge>
                 )}
                 <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground hover:text-foreground">
-                  Cancella tutto
+                  {t('home.clearDates')}
                 </Button>
               </div>
             )}
@@ -202,7 +205,7 @@ export default function Home() {
       <section className="py-12 bg-gradient-to-b from-background to-muted/20">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold mb-8">
-            {hasFilters ? "Risultati della ricerca" : "Eventi in Programma"}
+            {hasFilters ? t('home.noEventsDesc') : t('home.upcoming')}
           </h2>
 
           {isLoading ? (
@@ -274,7 +277,7 @@ export default function Home() {
                         size="lg"
                       >
                         <Ticket className="h-4 w-4 mr-2" />
-                        Acquista Biglietti
+                        {t('event.buyTickets')}
                       </Button>
                     </CardFooter>
                   </Card>
@@ -284,13 +287,13 @@ export default function Home() {
           ) : (
             <div className="text-center py-16">
               <Music className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Nessun evento trovato</h3>
+              <h3 className="text-xl font-semibold mb-2">{t('home.noEvents')}</h3>
               <p className="text-muted-foreground mb-4">
-                {hasFilters ? "Prova a modificare i filtri di ricerca" : "Torna più tardi per nuovi eventi"}
+                {hasFilters ? t('home.noEventsDesc') : t('home.noEventsDesc')}
               </p>
               {hasFilters && (
                 <Button variant="outline" onClick={clearFilters}>
-                  Rimuovi tutti i filtri
+                  {t('home.clearDates')}
                 </Button>
               )}
             </div>
@@ -306,19 +309,19 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8 text-sm">
             <div>
-              <h4 className="font-semibold mb-3">Collabora</h4>
+              <h4 className="font-semibold mb-3">{t('nav.collaborate')}</h4>
               <ul className="space-y-2 text-muted-foreground">
-                <li><Link href="/eventi-privati" className="hover:text-foreground transition-colors">Eventi Privati</Link></li>
-                <li><Link href="/sei-una-location" className="hover:text-foreground transition-colors">Sei una Location?</Link></li>
-                <li><Link href="/sei-un-artista" className="hover:text-foreground transition-colors">Sei un Artista?</Link></li>
-                <li><Link href="/sei-un-creator" className="hover:text-foreground transition-colors">Sei un Creator?</Link></li>
+                <li><Link href="/eventi-privati" className="hover:text-foreground transition-colors">{t('nav.privateEvents')}</Link></li>
+                <li><Link href="/sei-una-location" className="hover:text-foreground transition-colors">{t('nav.location')}</Link></li>
+                <li><Link href="/sei-un-artista" className="hover:text-foreground transition-colors">{t('nav.artist')}</Link></li>
+                <li><Link href="/sei-un-creator" className="hover:text-foreground transition-colors">{t('nav.creator')}</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-3">Azienda</h4>
+              <h4 className="font-semibold mb-3">{t('nav.workWithUs')}</h4>
               <ul className="space-y-2 text-muted-foreground">
-                <li><Link href="/lavora-con-noi" className="hover:text-foreground transition-colors">Lavora con Noi</Link></li>
-                <li><Link href="/termini-e-condizioni" className="hover:text-foreground transition-colors">Termini & Condizioni</Link></li>
+                <li><Link href="/lavora-con-noi" className="hover:text-foreground transition-colors">{t('nav.workWithUs')}</Link></li>
+                <li><Link href="/termini-e-condizioni" className="hover:text-foreground transition-colors">{t('nav.terms')}</Link></li>
                 <li><Link href="/termini-e-condizioni" className="hover:text-foreground transition-colors">FAQ</Link></li>
               </ul>
             </div>

@@ -314,3 +314,16 @@ export const errorLogs = mysqlTable("errorLogs", {
 });
 export type ErrorLog = typeof errorLogs.$inferSelect;
 export type InsertErrorLog = typeof errorLogs.$inferInsert;
+
+/**
+ * Slug redirects: tracks old slugs so 301 redirects work when an event slug is changed manually
+ */
+export const slugRedirects = mysqlTable("slugRedirects", {
+  id: int("id").autoincrement().primaryKey(),
+  oldSlug: varchar("oldSlug", { length: 300 }).notNull().unique(),
+  newSlug: varchar("newSlug", { length: 300 }).notNull(),
+  eventId: int("eventId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type SlugRedirect = typeof slugRedirects.$inferSelect;
+export type InsertSlugRedirect = typeof slugRedirects.$inferInsert;
